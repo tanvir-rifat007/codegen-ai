@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/tanvir-rifat007/codegen-ai-react/internal/agents/token"
 	"github.com/tanvir-rifat007/codegen-ai-react/internal/data"
+	"github.com/tanvir-rifat007/codegen-ai-react/internal/token"
 	"github.com/tanvir-rifat007/codegen-ai-react/internal/validator"
 )
 
@@ -187,6 +187,7 @@ func (app *application) loginUserHandler(w http.ResponseWriter, r *http.Request)
 
 	// after login user send a jwt token to the client:
 	user.JWT = token.CreateJWT(*user, app.logger)
+	token.SetAuthCookie(w, user.JWT)
 	err = app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)

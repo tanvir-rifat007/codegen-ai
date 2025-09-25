@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router"
+import { useCart } from "./contexts";
 
 
 const Home = () => {
+    const { user } = useCart()
     return (
         <div className="home">
             {/* Hero Section */}
@@ -10,10 +12,24 @@ const Home = () => {
                 <p className="subtitle">
                     Generate. Deploy. Ship. <br /> The future of coding, powered by AI.
                 </p>
-                <Link to="/generate-code">
 
-                    <button className="cta-btn">Start Generating Code</button>
-                </Link>
+                {user && (user.activated && user.jwt ?
+
+
+                    <Link to="/generate-code">
+
+                        <button className="cta-btn">Start Generating Code</button>
+                    </Link>
+                    :
+
+                    <Link to="/sign-in">
+
+                        <button className="cta-btn">Start Generating Code</button>
+                    </Link>)
+
+                }
+
+
             </header>
 
             {/* Features Section */}

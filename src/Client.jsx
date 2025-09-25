@@ -12,6 +12,7 @@ import About from "./About";
 import NotFoundRoute from "./NotFound";
 import User from "./User"
 import SignIn from "./SignIn";
+import { CartContext } from "./contexts";
 // Define routes
 const rootRoute = createRootRoute({
     component: Layout,
@@ -65,7 +66,11 @@ const router = createRouter({
 });
 
 function App() {
-    return <RouterProvider router={router} />;
+    return <CartContext>
+
+        <RouterProvider router={router} />
+
+    </CartContext>;
 }
 
 const root = createRoot(document.getElementById("root"));

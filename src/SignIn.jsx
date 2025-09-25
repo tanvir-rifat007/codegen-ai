@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useCart } from "./contexts";
 
 const SignIn = () => {
     const [formData, setFormData] = useState({
@@ -9,6 +10,12 @@ const SignIn = () => {
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+
+    const [toast, setToast] = useState(null);
+
+    const { user, handleSubmit } = useCart()
+
+    console.log(user)
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -45,32 +52,41 @@ const SignIn = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        if (!validateForm()) {
-            return;
-        }
-
-        setIsSubmitting(true);
-
-        // Simulate API call
-        setTimeout(() => {
-            console.log('User signin data:', formData);
-            setIsSubmitting(false);
-            // Handle successful sign in here
-            // Example: redirect to dashboard
-        }, 2000);
-    };
-
     const handleForgotPassword = () => {
         // Handle forgot password logic
         console.log('Forgot password clicked');
     };
 
+
+    const toastStyles = {
+        success: { background: "#4CAF50" },
+        error: { background: "#F44336" },
+        info: { background: "#2196F3" },
+    };
+
+
+
     return (
         <div className="user-register">
-            <form onSubmit={handleSubmit}>
+
+            {toast && (
+                <div style={{
+                    position: "fixed",
+                    top: "20px",
+                    right: "20px",
+                    color: "#fff",
+                    padding: "10px 20px",
+                    borderRadius: "6px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                    zIndex: 1000,
+                    ...toastStyles[toast.type || "info"]
+                }}>
+                    {toast.message}
+                </div>
+            )}
+
+
+            <form onSubmit={(e) => handleSubmit(e, setToast, setIsSubmitting, validateForm)}>
                 <div className="form-container">
                     <div className="generator-form">
                         <div className="register-header">

@@ -1,7 +1,11 @@
 import { Link, Outlet } from "@tanstack/react-router";
+import { CartContext, useCart } from "./contexts";
 
 
 export default function Layout() {
+    const { user } = useCart()
+
+    console.log("I ma inside layout", user)
     return (
         <div className="app-layout">
             <nav className="nav">
@@ -18,7 +22,7 @@ export default function Layout() {
                         <Link to="/about" className="nav-link">About</Link>
                         <Link to="/register" className="nav-link">Register</Link>
 
-                        <Link to="/sign-in" className="nav-link">SignIn</Link>
+                        {user && (user.activated && user.jwt ? null : <Link to="/sign-in" className="nav-link">SignIn</Link>)}
                     </div>
                 </div>
             </nav>
