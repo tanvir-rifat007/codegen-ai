@@ -15,6 +15,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"github.com/tanvir-rifat007/codegen-ai-react/internal/data"
+	"github.com/tanvir-rifat007/codegen-ai-react/internal/mailer"
 	"github.com/tanvir-rifat007/codegen-ai-react/internal/server"
 )
 
@@ -31,6 +32,13 @@ type config struct {
 	db        struct {
 		dsn string
 	}
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+		sender   string
+	}
 }
 
 type application struct {
@@ -38,6 +46,7 @@ type application struct {
 	logger *slog.Logger
 	wg     sync.WaitGroup
 	models data.Models
+	mailer *mailer.Mailer
 }
 
 const version = "1.0.0"
@@ -53,6 +62,12 @@ func main() {
 	flag.StringVar(&cfg.outputDir, "output-dir", "./output", "Base directory for generated projects")
 
 	flag.StringVar(&cfg.db.dsn, "db-url", os.Getenv("DB_URL"), "Database url")
+
+	flag.StringVar(&cfg.smtp.host, "smtp-host", os.Getenv("FROM_EMAIL_SMTP"), "SMTP host")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", 25, "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", os.Getenv("FROM_EMAIL"), "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", os.Getenv("FROM_EMAIL_PASSWORD"), "SMTP password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", os.Getenv("FROM_EMAIL"), "SMTP sender")
 
 	flag.Parse()
 
@@ -72,10 +87,17 @@ func main() {
 
 	logger.Info("Database connection pool established!")
 
+	mailer, err := mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
 	app := &application{
 		config: cfg,
 		logger: logger,
 		models: data.NewModels(db),
+		mailer: mailer,
 	}
 
 	err = app.initializeApp()
@@ -90,8 +112,12 @@ func main() {
 
 	http.HandleFunc("/api/users", app.createUserHandler)
 
+	http.HandleFunc("/api/users/authenticate", app.loginUserHandler)
+
 	http.HandleFunc("/api/generate", srv.HandleGenerate)
 	http.HandleFunc("/download/", srv.HandleDownload)
+
+	http.HandleFunc("/api/activate", app.activateUserHandler)
 
 	fmt.Println("SSR Server starting on http://localhost:3000")
 	fmt.Println("Static files served from /assets/")

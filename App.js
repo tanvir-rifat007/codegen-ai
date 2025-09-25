@@ -518,7 +518,7 @@ const User = () => {
                             'Already have an account? ',
                             h(
                                 'a',
-                                { href: '/login', className: 'auth-link' },
+                                { href: '/sign-in', className: 'auth-link' },
                                 'Sign In'
                             )
                         )
@@ -528,6 +528,182 @@ const User = () => {
         )
     );
 };
+
+
+function SignIn() {
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+        rememberMe: false
+    });
+    const [errors, setErrors] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+
+    const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+
+        if (errors[name]) {
+            setErrors(prev => ({
+                ...prev,
+                [name]: ''
+            }));
+        }
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+
+        if (!formData.email.trim()) {
+            newErrors.email = 'Email is required';
+        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            newErrors.email = 'Please enter a valid email address';
+        }
+
+        if (!formData.password) {
+            newErrors.password = 'Password is required';
+        } else if (formData.password.length < 6) {
+            newErrors.password = 'Password must be at least 6 characters';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!validateForm()) return;
+
+        setIsSubmitting(true);
+
+        setTimeout(() => {
+            console.log('User signin data:', formData);
+            setIsSubmitting(false);
+        }, 2000);
+    };
+
+    const handleForgotPassword = () => {
+        console.log('Forgot password clicked');
+    };
+
+    return h("div", { className: "user-register" },
+        h("form", { onSubmit: handleSubmit },
+            h("div", { className: "form-container" },
+                h("div", { className: "generator-form" },
+                    // Header
+                    h("div", { className: "register-header" },
+                        h("h1", { className: "register-title" }, "Welcome Back"),
+                        h("p", { className: "register-subtitle" }, "Sign in to your Maker account")
+                    ),
+
+                    // Form Grid
+                    h("div", { className: "form-grid" },
+                        // Email Field
+                        h("div", { className: "form-group" },
+                            h("label", { htmlFor: "email", className: "form-label" }, "Email Address"),
+                            h("input", {
+                                type: "email",
+                                placeholder: "example@email.com",
+                                name: "email",
+                                id: "email",
+                                className: "form-input",
+                                value: formData.email,
+                                onChange: handleInputChange,
+                                autoComplete: "email"
+                            }),
+                            errors.email && h("div", { className: "form-error" }, `⚠️ ${errors.email}`)
+                        ),
+
+                        // Password Field
+                        h("div", { className: "form-group" },
+                            h("label", { htmlFor: "password", className: "form-label" }, "Password"),
+                            h("div", { className: "password-input-container" },
+                                h("input", {
+                                    type: showPassword ? "text" : "password",
+                                    name: "password",
+                                    id: "password",
+                                    className: "form-input password-input",
+                                    placeholder: "Enter your password",
+                                    value: formData.password,
+                                    onChange: handleInputChange,
+                                    autoComplete: "current-password"
+                                }),
+                                h("button", {
+                                    type: "button",
+                                    className: "password-toggle",
+                                    onClick: () => setShowPassword(!showPassword),
+                                    "aria-label": showPassword ? "Hide password" : "Show password"
+                                }, showPassword ? "👁️" : "👁️‍🗨️")
+                            ),
+                            errors.password && h("div", { className: "form-error" }, `⚠️ ${errors.password}`)
+                        ),
+
+                        // Remember Me & Forgot Password
+                        h("div", { className: "form-options" },
+                            h("div", { className: "remember-me" },
+                                h("input", {
+                                    type: "checkbox",
+                                    id: "rememberMe",
+                                    name: "rememberMe",
+                                    checked: formData.rememberMe,
+                                    onChange: handleInputChange,
+                                    className: "checkbox-input"
+                                }),
+                                h("label", { htmlFor: "rememberMe", className: "checkbox-label" }, "Remember me")
+                            ),
+                            h("button", {
+                                type: "button",
+                                className: "forgot-password-link",
+                                onClick: handleForgotPassword
+                            }, "Forgot Password?")
+                        ),
+
+                        // Submit Button
+                        h("div", { className: "form-actions" },
+                            h("button", {
+                                type: "submit",
+                                className: "generate-btn",
+                                disabled: isSubmitting
+                            }, isSubmitting ? "Signing In..." : "Sign In")
+                        )
+                    ),
+
+                    // Divider
+                    h("div", { className: "auth-divider" },
+                        h("span", { className: "divider-line" }),
+                        h("span", { className: "divider-text" }, "or"),
+                        h("span", { className: "divider-line" })
+                    ),
+
+                    // Social Sign In
+                    h("div", { className: "social-signin" },
+                        h("button", { type: "button", className: "social-btn google-btn" },
+                            h("span", { className: "social-icon" }, "🔍"),
+                            "Continue with Google"
+                        ),
+                        h("button", { type: "button", className: "social-btn github-btn" },
+                            h("span", { className: "social-icon" }, "⚫"),
+                            "Continue with GitHub"
+                        )
+                    ),
+
+                    // Auth Links
+                    h("div", { className: "auth-links" },
+                        h("p", null,
+                            "Don't have an account? ",
+                            h("a", { href: "/register", className: "auth-link" }, "Create Account")
+                        )
+                    )
+                )
+            )
+        )
+    );
+};
+
 
 
 function App(props) {
@@ -547,6 +723,10 @@ function App(props) {
         case '/register':
             PageComponent = User;
             break;
+        case '/sign-in':
+            PageComponent = SignIn
+            break;
+
         default:
             PageComponent = NotFoundRoute
     }
@@ -562,7 +742,9 @@ function App(props) {
                     h("a", { href: "/generate-code", className: "nav-link" }, "Generate"),
                     h("a", { href: "/about", className: "nav-link" }, "About"),
 
-                    h("a", { href: "/register", className: "nav-link" }, "Register")
+                    h("a", { href: "/register", className: "nav-link" }, "Register"),
+
+                    h("a", { href: "/sign-in", className: "nav-link" }, "SignIn"),
 
                 )
             )

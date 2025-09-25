@@ -9,11 +9,16 @@ export default function Layout() {
                     <div className="nav-brand">
                         <Link to="/" className="nav-logo">🚀 Codegen AI</Link>
                     </div>
+
+                    <button className="nav-toggle" id="nav-toggle">☰</button>
+
                     <div className="nav-links">
                         <Link to="/" className="nav-link">Home</Link>
                         <Link to="/generate-code" className="nav-link">Generate</Link>
                         <Link to="/about" className="nav-link">About</Link>
                         <Link to="/register" className="nav-link">Register</Link>
+
+                        <Link to="/sign-in" className="nav-link">SignIn</Link>
                     </div>
                 </div>
             </nav>

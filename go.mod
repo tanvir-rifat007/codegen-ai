@@ -9,3 +9,9 @@ require (
 	golang.org/x/crypto v0.42.0
 	rogchap.com/v8go v0.9.0
 )
+
+require (
+	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
+	github.com/wneessen/go-mail v0.7.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
+)

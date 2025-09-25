@@ -83,7 +83,7 @@ const User = () => {
             console.log(data);
 
             if (data.user) {
-                setToast({ message: "✅ Account created successfully!", type: "success" });
+                setToast({ message: "✅ Account created successfully and please verify your email before login!", type: "success" });
             } else {
                 setToast({ message: `⚠️ ${data.error.email}`, type: "error" });
             }
@@ -195,7 +195,7 @@ const User = () => {
 
                         {/* Auth Links */}
                         <div className="auth-links">
-                            <p>Already have an account? <a href="/login" className="auth-link">Sign In</a></p>
+                            <p>Already have an account? <a href="/sign-in" className="auth-link">Sign In</a></p>
                         </div>
                     </div>
                 </div>

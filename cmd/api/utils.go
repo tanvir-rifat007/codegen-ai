@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -280,4 +281,48 @@ func setupReactInV8(ctx *v8go.Context) {
 	if err != nil {
 		log.Fatal("Error setting up React in V8:", err)
 	}
+}
+
+func (app *application) background(fn func()) {
+
+	// if we terminating the application then
+	// we give the background goroutine time to finish that work
+	// so that's why we use this waitgroup
+
+	app.wg.Add(1)
+
+	go func() {
+
+		defer app.wg.Done()
+
+		// if email sending has an error then print
+		// this error on the defer block
+
+		defer func() {
+
+			if err := recover(); err != nil {
+				app.logger.Error(fmt.Sprintf("%v", err))
+
+			}
+
+		}()
+
+		// email sending function
+		fn()
+
+	}()
+
+}
+
+func (app *application) readString(qs url.Values, key string, defaultValue string) string {
+
+	s := qs.Get(key)
+
+	if s == "" {
+		return defaultValue
+
+	}
+
+	return s
+
 }

@@ -11,6 +11,7 @@ import Layout from "./Layout";
 import About from "./About";
 import NotFoundRoute from "./NotFound";
 import User from "./User"
+import SignIn from "./SignIn";
 // Define routes
 const rootRoute = createRootRoute({
     component: Layout,
@@ -41,12 +42,20 @@ const registerUserRoute = createRoute({
     component: User,
 })
 
+
+const signinUserRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/sign-in",
+    component: SignIn,
+})
+
 // Create route tree
 const routeTree = rootRoute.addChildren([
     homeRoute,
     generateCodeRoute,
     aboutRoute,
     registerUserRoute,
+    signinUserRoute,
 ]);
 
 // Create router
