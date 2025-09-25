@@ -299,6 +299,237 @@ function NotFoundRoute() {
     );
 }
 
+const User = () => {
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: ''
+    });
+    const [errors, setErrors] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+
+        // Clear error when user starts typing
+        if (errors[name]) {
+            setErrors(prev => ({
+                ...prev,
+                [name]: ''
+            }));
+        }
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+
+        if (!formData.name.trim()) {
+            newErrors.name = 'Name is required';
+        }
+
+        if (!formData.email.trim()) {
+            newErrors.email = 'Email is required';
+        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            newErrors.email = 'Please enter a valid email address';
+        }
+
+        if (!formData.password) {
+            newErrors.password = 'Password is required';
+        } else if (formData.password.length < 6) {
+            newErrors.password = 'Password must be at least 6 characters';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        const formData = new FormData(e.target)
+        const name = formData.get("name")
+        const email = formData.get("email")
+        const password = formData.get("password")
+        console.log(name, email, password);
+
+        setIsSubmitting(true);
+
+        async function postUserData() {
+            const response = await fetch("/api/users", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ name, email, password }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            console.log(await response.json());
+            return response.json();
+        }
+
+        try {
+            await postUserData();
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsSubmitting(false);
+        }
+
+    };
+
+    return h(
+        'div',
+        { className: 'user-register' },
+        h(
+            'form',
+            { onSubmit: handleSubmit },
+            h(
+                'div',
+                { className: 'form-container' },
+                h(
+                    'div',
+                    { className: 'generator-form' },
+                    // Register Header
+                    h(
+                        'div',
+                        { className: 'register-header' },
+                        h(
+                            'h1',
+                            { className: 'register-title' },
+                            'Create Account'
+                        ),
+                        h(
+                            'p',
+                            { className: 'register-subtitle' },
+                            'Join Maker - AI For Everyone'
+                        )
+                    ),
+                    // Form Grid
+                    h(
+                        'div',
+                        { className: 'form-grid' },
+                        // Name Field
+                        h(
+                            'div',
+                            { className: 'form-group' },
+                            h(
+                                'label',
+                                { htmlFor: 'name', className: 'form-label' },
+                                'Full Name'
+                            ),
+                            h('input', {
+                                type: 'text',
+                                name: 'name',
+                                id: 'name',
+                                className: 'form-input',
+                                placeholder: 'Enter your full name',
+                                value: formData.name,
+                                onChange: handleInputChange
+                            }),
+                            errors.name && h(
+                                'div',
+                                { className: 'form-error' },
+                                '⚠️ ' + errors.name
+                            )
+                        ),
+                        // Email Field
+                        h(
+                            'div',
+                            { className: 'form-group' },
+                            h(
+                                'label',
+                                { htmlFor: 'email', className: 'form-label' },
+                                'Email Address'
+                            ),
+                            h('input', {
+                                type: 'email',
+                                placeholder: 'example@email.com',
+                                name: 'email',
+                                id: 'email',
+                                className: 'form-input',
+                                value: formData.email,
+                                onChange: handleInputChange
+                            }),
+                            errors.email && React.createElement(
+                                'div',
+                                { className: 'form-error' },
+                                '⚠️ ' + errors.email
+                            )
+                        ),
+                        // Password Field
+                        h(
+                            'div',
+                            { className: 'form-group' },
+                            h(
+                                'label',
+                                { htmlFor: 'password', className: 'form-label' },
+                                'Password'
+                            ),
+                            h('input', {
+                                type: 'password',
+                                name: 'password',
+                                id: 'password',
+                                className: 'form-input',
+                                placeholder: 'Enter a secure password',
+                                value: formData.password,
+                                onChange: handleInputChange
+                            }),
+                            errors.password && h(
+                                'div',
+                                { className: 'form-error' },
+                                '⚠️ ' + errors.password
+                            )
+                        ),
+                        // Submit Button
+                        h(
+                            'div',
+                            { className: 'form-actions' },
+                            h(
+                                'button',
+                                {
+                                    type: 'submit',
+                                    className: 'generate-btn',
+                                    disabled: isSubmitting
+                                },
+                                isSubmitting ? 'Creating Account...' : 'Create Account'
+                            )
+                        )
+                    ),
+                    // Auth Links
+                    h(
+                        'div',
+                        { className: 'auth-links' },
+                        h(
+                            'p',
+                            null,
+                            'Already have an account? ',
+                            h(
+                                'a',
+                                { href: '/login', className: 'auth-link' },
+                                'Sign In'
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    );
+};
+
+
 function App(props) {
     const pathname = props.ssrPathname || '/';
 
@@ -313,6 +544,9 @@ function App(props) {
         case '/about':
             PageComponent = About;
             break;
+        case '/register':
+            PageComponent = User;
+            break;
         default:
             PageComponent = NotFoundRoute
     }
@@ -326,7 +560,10 @@ function App(props) {
                 h("div", { className: "nav-links" },
                     h("a", { href: "/", className: "nav-link" }, "Home"),
                     h("a", { href: "/generate-code", className: "nav-link" }, "Generate"),
-                    h("a", { href: "/about", className: "nav-link" }, "About")
+                    h("a", { href: "/about", className: "nav-link" }, "About"),
+
+                    h("a", { href: "/register", className: "nav-link" }, "Register")
+
                 )
             )
         ),

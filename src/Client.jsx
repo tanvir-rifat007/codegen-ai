@@ -10,7 +10,7 @@ import AICodeGenerator from "./CodeMaker";
 import Layout from "./Layout";
 import About from "./About";
 import NotFoundRoute from "./NotFound";
-
+import User from "./User"
 // Define routes
 const rootRoute = createRootRoute({
     component: Layout,
@@ -35,11 +35,18 @@ const aboutRoute = createRoute({
     component: About,
 });
 
+const registerUserRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/register",
+    component: User,
+})
+
 // Create route tree
 const routeTree = rootRoute.addChildren([
     homeRoute,
     generateCodeRoute,
     aboutRoute,
+    registerUserRoute,
 ]);
 
 // Create router

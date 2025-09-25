@@ -1,11 +1,20 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"flag"
+	"fmt"
+	"log"
 	"log/slog"
+	"net/http"
 	"os"
 	"sync"
+	"time"
 
+	_ "github.com/lib/pq"
+
+	"github.com/tanvir-rifat007/codegen-ai-react/internal/data"
 	"github.com/tanvir-rifat007/codegen-ai-react/internal/server"
 )
 
@@ -28,6 +37,7 @@ type application struct {
 	config config
 	logger *slog.Logger
 	wg     sync.WaitGroup
+	models data.Models
 }
 
 const version = "1.0.0"
@@ -42,28 +52,75 @@ func main() {
 	flag.StringVar(&cfg.openAiKey, "openAiKey", os.Getenv("OPENAI_API_KEY"), "OpenAI API key")
 	flag.StringVar(&cfg.outputDir, "output-dir", "./output", "Base directory for generated projects")
 
+	flag.StringVar(&cfg.db.dsn, "db-url", os.Getenv("DB_URL"), "Database url")
+
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
+	// web socket server
+	srv := server.NewServer(cfg.openAiKey, cfg.outputDir)
+
+	db, err := openDB(cfg)
+
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
+	defer db.Close()
+
+	logger.Info("Database connection pool established!")
+
 	app := &application{
 		config: cfg,
 		logger: logger,
+		models: data.NewModels(db),
 	}
 
-	srv := server.NewServer(cfg.openAiKey, cfg.outputDir)
-
-	err := app.initializeApp()
+	err = app.initializeApp()
 	if err != nil {
-		app.logger.Error(err.Error())
-		return
-	}
-
-	err = app.serve(srv)
-
-	if err != nil {
-		app.logger.Error(err.Error())
+		logger.Error(err.Error())
 		os.Exit(1)
 	}
+
+	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("dist/assets/"))))
+	// Setup HTTP routes
+	http.HandleFunc("/", app.handleSSR)
+
+	http.HandleFunc("/api/users", app.createUserHandler)
+
+	http.HandleFunc("/api/generate", srv.HandleGenerate)
+	http.HandleFunc("/download/", srv.HandleDownload)
+
+	fmt.Println("SSR Server starting on http://localhost:3000")
+	fmt.Println("Static files served from /assets/")
+	fmt.Println("React SSR on every request!")
+
+	log.Fatal(http.ListenAndServe(":3000", nil))
+
+}
+
+func openDB(cfg config) (*sql.DB, error) {
+	db, err := sql.Open("postgres", cfg.db.dsn)
+
+	if err != nil {
+		return nil, err
+
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+	defer cancel()
+
+	err = db.PingContext(ctx)
+
+	if err != nil {
+		db.Close()
+		return nil, err
+
+	}
+
+	return db, nil
 
 }

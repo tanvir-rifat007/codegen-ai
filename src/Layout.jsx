@@ -13,6 +13,7 @@ export default function Layout() {
                         <Link to="/" className="nav-link">Home</Link>
                         <Link to="/generate-code" className="nav-link">Generate</Link>
                         <Link to="/about" className="nav-link">About</Link>
+                        <Link to="/register" className="nav-link">Register</Link>
                     </div>
                 </div>
             </nav>
