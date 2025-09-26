@@ -5,7 +5,8 @@ const Context = createContext({
     user: {},
     setUser: () => { },
     loginUser: () => { },
-    isLoading: true
+    isLoading: true,
+    logoutUser: () => { },
 })
 
 export const CartContext = ({ children }) => {

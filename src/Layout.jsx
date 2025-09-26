@@ -1,20 +1,39 @@
-import { Link, Outlet } from "@tanstack/react-router";
+import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useCart } from "./contexts";
 
 export default function Layout() {
     const { user, isLoading, logoutUser } = useCart()
+    const location = useLocation()
+    const navigate = useNavigate()
 
     console.log("I am inside layout", { user, isLoading })
 
+    // Helper function to check if user is authenticated
     const isUserAuthenticated = () => {
         return user && user.activated && user.name && user.email;
     }
 
-    const handleLogout = async () => {
+    const handleLogout = async (e) => {
+        e.preventDefault()
         await logoutUser();
 
+        navigate({ to: "/" });
+    }
 
-        window.location.href = '/';
+    // Helper function to check if route is active
+    const isActiveRoute = (path) => {
+        console.log(location.pathname)
+        return location.pathname === path;
+    }
+
+    // Helper function to get nav link classes with special handling
+    const getNavLinkClass = (path, linkType = null) => {
+        // Special case: if we're on sign-in page and this is the generate link for non-authenticated users
+        if (location.pathname === '/sign-in' && linkType === 'generate-redirect') {
+            return 'nav-link'; // Don't highlight generate when on sign-in page
+        }
+
+        return `nav-link ${isActiveRoute(path) ? 'nav-link-active' : ''}`;
     }
 
     // Show loading spinner while checking authentication
@@ -56,15 +75,35 @@ export default function Layout() {
                     </div>
                     <button className="nav-toggle" id="nav-toggle">☰</button>
                     <div className="nav-links">
-                        <Link to="/" className="nav-link">Home</Link>
+                        <Link
+                            to="/"
+                            className={getNavLinkClass('/')}
+                        >
+                            Home
+                        </Link>
 
                         {isUserAuthenticated() ? (
-                            <Link to="/generate-code" className="nav-link">Generate</Link>
+                            <Link
+                                to="/generate-code"
+                                className={getNavLinkClass('/generate-code')}
+                            >
+                                Generate
+                            </Link>
                         ) : (
-                            <Link to="/sign-in" className="nav-link">Generate</Link>
+                            <Link
+                                to="/sign-in"
+                                className={getNavLinkClass('/sign-in', 'generate-redirect')}
+                            >
+                                Generate
+                            </Link>
                         )}
 
-                        <Link to="/about" className="nav-link">About</Link>
+                        <Link
+                            to="/about"
+                            className={getNavLinkClass('/about')}
+                        >
+                            About
+                        </Link>
 
                         {isUserAuthenticated() ? (
                             <>
@@ -72,7 +111,7 @@ export default function Layout() {
                                     Hello, {user.name}
                                 </span>
                                 <button
-                                    onClick={handleLogout}
+                                    onClick={(e) => handleLogout(e)}
                                     className="nav-link logout-btn"
                                     style={{
                                         background: 'none',
@@ -88,8 +127,18 @@ export default function Layout() {
                             </>
                         ) : (
                             <>
-                                <Link to="/register" className="nav-link">Register</Link>
-                                <Link to="/sign-in" className="nav-link">Sign In</Link>
+                                <Link
+                                    to="/register"
+                                    className={getNavLinkClass('/register')}
+                                >
+                                    Register
+                                </Link>
+                                <Link
+                                    to="/sign-in"
+                                    className={getNavLinkClass('/sign-in')}
+                                >
+                                    Sign In
+                                </Link>
                             </>
                         )}
                     </div>

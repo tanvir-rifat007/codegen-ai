@@ -10,7 +10,6 @@ const SignIn = () => {
     });
 
     const navigate = useNavigate()
-    const search = useSearch({ from: "/sign-in" })
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -89,7 +88,7 @@ const SignIn = () => {
 
                         // Navigate after a short delay to show success message
                         setTimeout(() => {
-                            navigate({ to: search.from ?? '/' })
+                            navigate({ to: '/' })
                         }, 1000);
                     } else {
                         throw new Error("User data not found in response")

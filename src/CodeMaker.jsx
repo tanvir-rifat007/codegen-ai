@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+
 import { Menu, Plus, MessageSquare, Trash2, Edit3, Check, X } from 'lucide-react';
 
 const AICodeGenerator = () => {
