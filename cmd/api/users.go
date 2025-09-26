@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/tanvir-rifat007/codegen-ai-react/internal/data"
 	"github.com/tanvir-rifat007/codegen-ai-react/internal/token"
 	"github.com/tanvir-rifat007/codegen-ai-react/internal/validator"
@@ -190,6 +191,60 @@ func (app *application) loginUserHandler(w http.ResponseWriter, r *http.Request)
 	token.SetAuthCookie(w, user.JWT)
 	err = app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil)
 	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+}
+
+func (app *application) meHandler(w http.ResponseWriter, r *http.Request) {
+
+	jwtStr, err := token.GetAuthCookie(r)
+
+	if err != nil {
+		app.logger.Error(err.Error())
+		return
+	}
+
+	parsed, err := token.ValidateJWT(jwtStr, app.logger)
+
+	if err != nil {
+		app.logger.Error(err.Error())
+		return
+	}
+
+	claims, ok := parsed.Claims.(jwt.MapClaims)
+
+	if !ok {
+		http.Error(w, "Invalid Claims", http.StatusUnauthorized)
+		return
+	}
+
+	user := data.User{
+		ID:        claims["id"].(string),
+		Email:     claims["email"].(string),
+		Name:      claims["name"].(string),
+		Activated: claims["activated"].(bool),
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil)
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+
+	}
+
+}
+
+func (app *application) logoutHandler(w http.ResponseWriter, r *http.Request) {
+
+	token.ClearAuthCookie(w)
+
+	err := app.writeJSON(w, 204, envelope{"user": ""}, nil)
+
+	if err != nil {
+
 		app.serverErrorResponse(w, r, err)
 		return
 	}

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useCart } from "./contexts";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 
 const SignIn = () => {
     const [formData, setFormData] = useState({
@@ -7,15 +8,17 @@ const SignIn = () => {
         password: '',
         rememberMe: false
     });
+
+    const navigate = useNavigate()
+    const search = useSearch({ from: "/sign-in" })
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
     const [toast, setToast] = useState(null);
 
-    const { user, handleSubmit } = useCart()
+    const { loginUser, setUser } = useCart()
 
-    console.log(user)
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -52,6 +55,68 @@ const SignIn = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+
+        if (!validateForm()) {
+            return
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            // First, authenticate the user
+            const data = await loginUser(formData.email, formData.password)
+            console.log("after signin data:", data)
+
+            if (data.user || data.success) {
+                // Fetch the latest user data immediately after successful login
+                const meDataRes = await fetch("/api/users/me", {
+                    credentials: "include",
+                })
+
+
+
+                if (meDataRes.ok) {
+                    const meData = await meDataRes.json()
+                    console.log("User data from /me:", meData)
+
+                    // Update the user context with the fresh data
+                    if (meData.user) {
+                        setUser(meData.user)
+                        setToast({ message: "✅ Successfully logged in!", type: "success" });
+
+                        // Navigate after a short delay to show success message
+                        setTimeout(() => {
+                            navigate({ to: search.from ?? '/' })
+                        }, 1000);
+                    } else {
+                        throw new Error("User data not found in response")
+                    }
+                } else {
+                    throw new Error("Failed to fetch user data")
+                }
+            } else if (data.error) {
+                const errorMessage = typeof data.error === 'string'
+                    ? data.error
+                    : data.error.email || "Login failed"
+                setToast({ message: `⚠️ ${errorMessage}`, type: "error" });
+            } else {
+                setToast({ message: "⚠️ Login failed", type: "error" });
+            }
+        } catch (err) {
+            console.error("Login error:", err)
+            setToast({ message: "❌ Something went wrong!", type: "error" });
+        } finally {
+            setIsSubmitting(false);
+            // Clear toast after 3 seconds
+            setTimeout(() => setToast(null), 3000);
+        }
+    }
+
+
+
     const handleForgotPassword = () => {
         // Handle forgot password logic
         console.log('Forgot password clicked');
@@ -86,7 +151,7 @@ const SignIn = () => {
             )}
 
 
-            <form onSubmit={(e) => handleSubmit(e, setToast, setIsSubmitting, validateForm)}>
+            <form onSubmit={handleSubmit}>
                 <div className="form-container">
                     <div className="generator-form">
                         <div className="register-header">

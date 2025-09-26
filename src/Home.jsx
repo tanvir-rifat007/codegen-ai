@@ -13,7 +13,7 @@ const Home = () => {
                     Generate. Deploy. Ship. <br /> The future of coding, powered by AI.
                 </p>
 
-                {user && (user.activated && user.jwt ?
+                {user && (user.activated && user.name && user.email ?
 
 
                     <Link to="/generate-code">

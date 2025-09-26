@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+import { useNavigate } from "@tanstack/react-router";
+
 const User = () => {
     const [formData, setFormData] = useState({
         name: '',
@@ -9,6 +11,8 @@ const User = () => {
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [toast, setToast] = useState(null);
+
+    const navigate = useNavigate()
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -84,6 +88,7 @@ const User = () => {
 
             if (data.user) {
                 setToast({ message: "✅ Account created successfully and please verify your email before login!", type: "success" });
+                await navigate({ to: "/sign-in" })
             } else {
                 setToast({ message: `⚠️ ${data.error.email}`, type: "error" });
             }

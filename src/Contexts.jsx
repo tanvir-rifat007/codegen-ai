@@ -1,77 +1,76 @@
-import { createContext, use, useState } from "react"
+import { Navigate } from "@tanstack/react-router";
+import { createContext, use, useState, useEffect } from "react"
 
 const Context = createContext({
     user: {},
     setUser: () => { },
-    handleSubmit: () => { }
-
+    loginUser: () => { },
+    isLoading: true
 })
 
 export const CartContext = ({ children }) => {
     const [user, setUser] = useState({})
+    const [isLoading, setIsLoading] = useState(true)
 
-
-    const handleSubmit = async (e, setToast, setIsSubmitting, validateForm) => {
-        e.preventDefault();
-
-        if (!validateForm()) {
-            return;
-        }
-
-        const formDataObj = new FormData(e.target);
-        const email = formDataObj.get("email");
-        const password = formDataObj.get("password");
-
-        setIsSubmitting(true);
-
-        async function postUserData() {
-            const response = await fetch("/api/users/authenticate", {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, password }),
-            });
-
-            if (!response.ok) {
-                throw new Error("Network response was not ok");
-            }
-
-            return response.json();
-        }
-
-        try {
-            const data = await postUserData();
-            console.log(data);
-
-            if (data.user) {
-                setUser({
-                    ...user,
-                    ...data.user,
-
+    // Check if user is authenticated on app load
+    useEffect(() => {
+        // get the user info from the httpCookie using jwt
+        const checkAuthStatus = async () => {
+            try {
+                const response = await fetch("/api/users/me", {
+                    credentials: "include",
                 })
 
-                setToast({ message: "✅ Account created successfully and please verify your email before login!", type: "success" });
-            } else {
-                setToast({ message: `⚠️ ${data.error.email}`, type: "error" });
+                if (!response.ok) { return }
+
+                if (response.ok) {
+                    const userData = await response.json()
+                    if (userData.user) {
+                        setUser(userData.user)
+                    }
+                }
+            } catch (error) {
+                console.error("Error checking auth status:", error)
+            } finally {
+                setIsLoading(false)
             }
-        } catch (err) {
-            console.error(err);
-            setToast({ message: "❌ Something went wrong!", type: "error" });
-        } finally {
-            setTimeout(() => setToast(null), 2000);
-            setIsSubmitting(false);
         }
-    };
 
+        checkAuthStatus()
+    }, [])
 
+    const loginUser = async (email, password) => {
+        const response = await fetch("/api/users/authenticate", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+        })
+        if (!response.ok) {
+            throw new Error("Network response was not ok")
+        }
+        return response.json()
+    }
 
+    const logoutUser = async () => {
+        try {
+            await fetch("/api/users/logout", {
+                method: "POST",
+                credentials: "include",
+            })
+            setUser({})
+        } catch (error) {
+            console.error("Logout error:", error)
+        }
+    }
 
-    const value = { user, handleSubmit, setUser };
-
-
-
+    const value = {
+        user,
+        loginUser,
+        logoutUser,
+        setUser,
+        isLoading
+    }
 
     return (
         <Context.Provider value={value}>{children}</Context.Provider>
@@ -79,5 +78,3 @@ export const CartContext = ({ children }) => {
 }
 
 export const useCart = () => use(Context)
-
-

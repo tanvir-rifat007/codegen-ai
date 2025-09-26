@@ -114,6 +114,9 @@ func main() {
 
 	http.HandleFunc("/api/users/authenticate", app.loginUserHandler)
 
+	http.HandleFunc("/api/users/me", app.meHandler)
+
+	http.HandleFunc("/api/users/logout", app.logoutHandler)
 	http.HandleFunc("/api/generate", srv.HandleGenerate)
 	http.HandleFunc("/download/", srv.HandleDownload)
 
