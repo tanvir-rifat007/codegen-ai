@@ -1,10 +1,12 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { useCart } from "./contexts";
 
 export default function Layout() {
     const { user, isLoading, logoutUser } = useCart()
     const location = useLocation()
     const navigate = useNavigate()
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
     console.log("I am inside layout", { user, isLoading })
 
@@ -13,11 +15,42 @@ export default function Layout() {
         return user && user.activated && user.name && user.email;
     }
 
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [location.pathname]);
+
+    useEffect(() => {
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                setIsMobileMenuOpen(false);
+            }
+        };
+
+        const handleClickOutside = (e) => {
+            if (isMobileMenuOpen && !e.target.closest('.nav-container')) {
+                setIsMobileMenuOpen(false);
+            }
+        };
+
+        if (isMobileMenuOpen) {
+            document.addEventListener('keydown', handleEscape);
+            document.addEventListener('click', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [isMobileMenuOpen]);
+
     const handleLogout = async (e) => {
         e.preventDefault()
         await logoutUser();
-
         navigate({ to: "/" });
+    }
+
+    const toggleMobileMenu = () => {
+        setIsMobileMenuOpen(prev => !prev);
     }
 
     // Helper function to check if route is active
@@ -26,17 +59,14 @@ export default function Layout() {
         return location.pathname === path;
     }
 
-    // Helper function to get nav link classes with special handling
     const getNavLinkClass = (path, linkType = null) => {
-        // Special case: if we're on sign-in page and this is the generate link for non-authenticated users
         if (location.pathname === '/sign-in' && linkType === 'generate-redirect') {
-            return 'nav-link'; // Don't highlight generate when on sign-in page
+            return 'nav-link';
         }
 
         return `nav-link ${isActiveRoute(path) ? 'nav-link-active' : ''}`;
     }
 
-    // Show loading spinner while checking authentication
     if (isLoading) {
         return (
             <div className="app-layout">
@@ -73,8 +103,16 @@ export default function Layout() {
                     <div className="nav-brand">
                         <Link to="/" className="nav-logo">🚀 Codegen AI</Link>
                     </div>
-                    <button className="nav-toggle" id="nav-toggle">☰</button>
-                    <div className="nav-links">
+                    <button
+                        className="nav-toggle"
+                        id="nav-toggle"
+                        onClick={toggleMobileMenu}
+                        aria-label="Toggle mobile menu"
+                        aria-expanded={isMobileMenuOpen}
+                    >
+                        {isMobileMenuOpen ? '✕' : '☰'}
+                    </button>
+                    <div className={`nav-links ${isMobileMenuOpen ? 'open' : ''}`}>
                         <Link
                             to="/"
                             className={getNavLinkClass('/')}

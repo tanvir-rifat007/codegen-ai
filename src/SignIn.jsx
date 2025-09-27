@@ -209,29 +209,6 @@ const SignIn = () => {
                                 )}
                             </div>
 
-                            {/* Remember Me & Forgot Password */}
-                            <div className="form-options">
-                                <div className="remember-me">
-                                    <input
-                                        type="checkbox"
-                                        id="rememberMe"
-                                        name="rememberMe"
-                                        checked={formData.rememberMe}
-                                        onChange={handleInputChange}
-                                        className="checkbox-input"
-                                    />
-                                    <label htmlFor="rememberMe" className="checkbox-label">
-                                        Remember me
-                                    </label>
-                                </div>
-                                <button
-                                    type="button"
-                                    className="forgot-password-link"
-                                    onClick={handleForgotPassword}
-                                >
-                                    Forgot Password?
-                                </button>
-                            </div>
 
                             {/* Submit Button */}
                             <div className="form-actions">
@@ -245,24 +222,6 @@ const SignIn = () => {
                             </div>
                         </div>
 
-                        {/* Divider */}
-                        <div className="auth-divider">
-                            <span className="divider-line"></span>
-                            <span className="divider-text">or</span>
-                            <span className="divider-line"></span>
-                        </div>
-
-                        {/* Social Sign In Options */}
-                        <div className="social-signin">
-                            <button type="button" className="social-btn google-btn">
-                                <span className="social-icon">🔍</span>
-                                Continue with Google
-                            </button>
-                            <button type="button" className="social-btn github-btn">
-                                <span className="social-icon">⚫</span>
-                                Continue with GitHub
-                            </button>
-                        </div>
 
                         {/* Auth Links */}
                         <div className="auth-links">
