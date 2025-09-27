@@ -1,19 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 import { Menu, Plus, MessageSquare, Trash2, Edit3, Check, X } from 'lucide-react';
+import { useCart } from "./contexts"
 
 const AICodeGenerator = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [showResults, setShowResults] = useState(false);
     const [downloadUrl, setDownloadUrl] = useState('');
     const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
-    const [chatHistory, setChatHistory] = useState([
-        { id: 1, title: 'REST API with Authentication', timestamp: '2 hours ago', prompt: 'Create a REST API with user authentication' },
-        { id: 2, title: 'E-commerce Backend', timestamp: '1 day ago', prompt: 'Build an e-commerce backend with payment integration' },
-        { id: 3, title: 'Blog CMS System', timestamp: '2 days ago', prompt: 'Create a blog content management system' },
-        { id: 4, title: 'Task Management API', timestamp: '3 days ago', prompt: 'Build a task management API with teams' },
-        { id: 5, title: 'Chat Application Backend', timestamp: '1 week ago', prompt: 'Create a real-time chat application backend' }
-    ]);
+    const [chatHistory, setChatHistory] = useState([]);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(true);
     const [currentChatId, setCurrentChatId] = useState(null);
     const [editingId, setEditingId] = useState(null);
     const [editingTitle, setEditingTitle] = useState('');
@@ -26,9 +22,65 @@ const AICodeGenerator = () => {
         prompt: '',
         projectName: ''
     });
+    const { user } = useCart()
+
+    const { id } = user;
 
     const consoleRef = useRef(null);
     const websocketRef = useRef(null);
+
+    // Fetch user's code generation history
+    const fetchUserHistory = async () => {
+        try {
+            setIsLoadingHistory(true);
+            const response = await fetch(`http://localhost:3000/api/history?user_id=${id}`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Transform the data to match the expected format
+            const transformedHistory = data.map(item => ({
+                id: item.id,
+                title: item.projectname || (item.prompt.slice(0, 50) + (item.prompt.length > 50 ? '...' : '')),
+                timestamp: formatTimestamp(item.id), // You can improve this by adding created_at to your DB
+                prompt: item.prompt,
+                language: item.language,
+                template: item.template,
+                basePackage: item.basepackage,
+                workers: item.workers,
+                model: item.model,
+                projectName: item.projectname
+            }));
+
+            setChatHistory(transformedHistory);
+        } catch (error) {
+            console.error('Error fetching user history:', error);
+            setChatHistory([]);
+        } finally {
+            setIsLoadingHistory(false);
+        }
+    };
+
+    // Simple timestamp formatter (you should improve this)
+    const formatTimestamp = (id) => {
+        const now = new Date();
+        const daysDiff = Math.floor(Math.random() * 30); // Random for demo - add created_at to your database
+        if (daysDiff === 0) return 'Today';
+        if (daysDiff === 1) return '1 day ago';
+        if (daysDiff < 7) return `${daysDiff} days ago`;
+        if (daysDiff < 30) return `${Math.floor(daysDiff / 7)} week${Math.floor(daysDiff / 7) > 1 ? 's' : ''} ago`;
+        return `${Math.floor(daysDiff / 30)} month${Math.floor(daysDiff / 30) > 1 ? 's' : ''} ago`;
+    };
+
+    // Load user history on component mount
+    useEffect(() => {
+        if (id) {
+            fetchUserHistory();
+        }
+    }, [id]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -67,10 +119,15 @@ const AICodeGenerator = () => {
 
     const loadChat = (chat) => {
         setCurrentChatId(chat.id);
-        setFormData(prev => ({
-            ...prev,
-            prompt: chat.prompt
-        }));
+        setFormData({
+            language: chat.language || 'go',
+            template: chat.template || 'go-gin',
+            basePackage: chat.basePackage || 'github.com/user/app',
+            workerCount: chat.workers || 4,
+            model: chat.model || 'o3-mini',
+            prompt: chat.prompt,
+            projectName: chat.projectName || ''
+        });
         // Close sidebar on mobile after selecting chat
         if (window.innerWidth <= 768) {
             setSidebarOpen(false);
@@ -128,6 +185,7 @@ const AICodeGenerator = () => {
 
         websocketRef.current.onopen = () => {
             websocketRef.current.send(JSON.stringify({
+                id: id,
                 ...formData,
                 workerCount: parseInt(formData.workerCount),
                 projectName: formData.projectName || `${formData.language}-project`
@@ -154,6 +212,8 @@ const AICodeGenerator = () => {
                     log('success', data.message);
                     setDownloadUrl(data.zipUrl);
                     setIsGenerating(false);
+                    // Refresh history after successful generation
+                    fetchUserHistory();
                     break;
             }
         };
@@ -597,6 +657,11 @@ const AICodeGenerator = () => {
                     box-shadow: 0 0 15px rgba(115, 209, 61, 0.6);
                 }
 
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+
                 /* Mobile Responsive Styles */
                 @media (max-width: 768px) {
                     .sidebar {
@@ -723,67 +788,91 @@ const AICodeGenerator = () => {
 
                     <div className="chat-history">
                         <h3>Recent Chats</h3>
-                        {chatHistory.map((chat) => (
-                            <div
-                                key={chat.id}
-                                className={`chat-item ${currentChatId === chat.id ? 'active' : ''}`}
-                                onClick={() => loadChat(chat)}
-                            >
-                                {editingId === chat.id ? (
-                                    <div>
-                                        <input
-                                            type="text"
-                                            value={editingTitle}
-                                            onChange={(e) => setEditingTitle(e.target.value)}
-                                            className="edit-input"
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') saveEdit();
-                                                if (e.key === 'Escape') cancelEdit();
-                                            }}
-                                            autoFocus
-                                        />
-                                        <div className="edit-actions">
-                                            <button onClick={saveEdit} className="chat-action-btn">
-                                                <Check size={12} />
-                                            </button>
-                                            <button onClick={cancelEdit} className="chat-action-btn">
-                                                <X size={12} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className="chat-content">
-                                            <MessageSquare size={16} className="chat-icon" />
-                                            <div className="chat-details">
-                                                <div className="chat-title">{chat.title}</div>
-                                                <div className="chat-timestamp">{chat.timestamp}</div>
+                        {isLoadingHistory ? (
+                            <div style={{ textAlign: 'center', color: '#777', padding: '2rem 0' }}>
+                                <div style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    border: '2px solid #333',
+                                    borderTop: '2px solid #00ffe7',
+                                    borderRadius: '50%',
+                                    margin: '0 auto 0.5rem',
+                                    animation: 'spin 1s linear infinite'
+                                }}></div>
+                                Loading history...
+                            </div>
+                        ) : chatHistory.length === 0 ? (
+                            <div style={{ textAlign: 'center', color: '#777', padding: '2rem 0' }}>
+                                <MessageSquare size={48} style={{ opacity: 0.5, margin: '0 auto 0.5rem', display: 'block' }} />
+                                <p>No code generation history</p>
+                                <p style={{ fontSize: '0.75rem' }}>Start generating code to see your projects here</p>
+                            </div>
+                        ) : (
+                            chatHistory.map((chat) => (
+                                <div
+                                    key={chat.id}
+                                    className={`chat-item ${currentChatId === chat.id ? 'active' : ''}`}
+                                    onClick={() => loadChat(chat)}
+                                >
+                                    {editingId === chat.id ? (
+                                        <div>
+                                            <input
+                                                type="text"
+                                                value={editingTitle}
+                                                onChange={(e) => setEditingTitle(e.target.value)}
+                                                className="edit-input"
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') saveEdit();
+                                                    if (e.key === 'Escape') cancelEdit();
+                                                }}
+                                                autoFocus
+                                            />
+                                            <div className="edit-actions">
+                                                <button onClick={saveEdit} className="chat-action-btn">
+                                                    <Check size={12} />
+                                                </button>
+                                                <button onClick={cancelEdit} className="chat-action-btn">
+                                                    <X size={12} />
+                                                </button>
                                             </div>
                                         </div>
-                                        <div className="chat-actions">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    startEditing(chat);
-                                                }}
-                                                className="chat-action-btn"
-                                            >
-                                                <Edit3 size={12} />
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    deleteChat(chat.id);
-                                                }}
-                                                className="chat-action-btn delete"
-                                            >
-                                                <Trash2 size={12} />
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        ))}
+                                    ) : (
+                                        <>
+                                            <div className="chat-content">
+                                                <MessageSquare size={16} className="chat-icon" />
+                                                <div className="chat-details">
+                                                    <div className="chat-title">{chat.title}</div>
+                                                    <div className="chat-timestamp">{chat.timestamp}</div>
+                                                    <div style={{ fontSize: '0.7rem', color: '#555', marginTop: '0.25rem' }}>
+                                                        {chat.language} • {chat.template}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="chat-actions">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        startEditing(chat);
+                                                    }}
+                                                    className="chat-action-btn"
+                                                >
+                                                    <Edit3 size={12} />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        deleteChat(chat.id);
+                                                    }}
+                                                    className="chat-action-btn delete"
+                                                >
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
 

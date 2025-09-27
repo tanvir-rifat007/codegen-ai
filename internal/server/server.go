@@ -2,12 +2,14 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -15,6 +17,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/tanvir-rifat007/codegen-ai-react/internal/agents"
+	"github.com/tanvir-rifat007/codegen-ai-react/internal/data"
 )
 
 type Server struct {
@@ -22,6 +25,8 @@ type Server struct {
 	upgrader   websocket.Upgrader
 	openAIKey  string
 	outputBase string
+
+	codegenModel *data.CodeGenModel
 }
 
 type WebSocketClient struct {
@@ -42,6 +47,7 @@ func (c *WebSocketClient) WriteJSON(v interface{}) error {
 }
 
 type ProjectRequest struct {
+	ID          string `json:"id"`
 	Prompt      string `json:"prompt"`
 	Language    string `json:"language"`
 	Template    string `json:"template"`
@@ -60,7 +66,7 @@ type ProgressEvent struct {
 	ProjectDir string `json:"projectDir,omitempty"`
 }
 
-func NewServer(openAIKey, outputBase string) *Server {
+func NewServer(openAIKey, outputBase string, codegenModel *data.CodeGenModel) *Server {
 	if err := os.MkdirAll(outputBase, 0755); err != nil {
 		log.Printf("Failed to create output base directory: %v", err)
 	}
@@ -73,12 +79,13 @@ func NewServer(openAIKey, outputBase string) *Server {
 				return true
 			},
 		},
+		codegenModel: codegenModel,
 	}
 }
 
 func (s *Server) HandleGenerate(w http.ResponseWriter, r *http.Request) {
-	conn, err := s.upgrader.Upgrade(w, r, nil)
 
+	conn, err := s.upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		http.Error(w, "Could not upgrade connection", http.StatusInternalServerError)
 		return
@@ -97,9 +104,49 @@ func (s *Server) HandleGenerate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Convert string ID to int
+	userID, err := strconv.Atoi(req.ID)
+	if err != nil {
+		sendEvent(wsClient, ProgressEvent{
+			Type:  "error",
+			Error: "Invalid user ID format: " + err.Error(),
+		})
+		return
+	}
+
+	// Validate user ID
+	if userID == 0 {
+		sendEvent(wsClient, ProgressEvent{
+			Type:  "error",
+			Error: "User ID is required",
+		})
+		return
+	}
+
 	projectName := req.ProjectName
 	if projectName == "" {
 		projectName = fmt.Sprintf("%s-project", req.Language)
+	}
+
+	// Create database record
+	codegenRecord := &data.CodenGen{
+		UserID:      userID,
+		Language:    req.Language,
+		Template:    req.Template,
+		BasePackage: req.BasePackage,
+		Workers:     req.WorkerCount,
+		Model:       req.Model,
+		ProjectName: projectName,
+		Prompt:      req.Prompt,
+	}
+
+	// Save to database (you'll need to pass your CodeGenModel instance to the server)
+	if err := s.codegenModel.Create(codegenRecord); err != nil {
+		sendEvent(wsClient, ProgressEvent{
+			Type:  "error",
+			Error: "Failed to save generation request: " + err.Error(),
+		})
+		return
 	}
 
 	sessionID := uuid.New().String()
@@ -244,4 +291,46 @@ func sendEvent(client *WebSocketClient, event ProgressEvent) {
 	if err != nil {
 		log.Printf("error writing data to connection: %v\n", err)
 	}
+}
+
+func (s *Server) HandleGetUserHistory(w http.ResponseWriter, r *http.Request) {
+	// Enable CORS
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Get user ID from query parameter
+	userIDStr := r.URL.Query().Get("user_id")
+	if userIDStr == "" {
+		http.Error(w, "user_id parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid user_id format", http.StatusBadRequest)
+		return
+	}
+
+	// Fetch user's code generation history
+	codegens, err := s.codegenModel.GetAllByUserID(userID)
+	if err != nil {
+		log.Printf("Error fetching user history: %v", err)
+		http.Error(w, "Failed to fetch user history", http.StatusInternalServerError)
+		return
+	}
+
+	// Convert to JSON and send response
+	json.NewEncoder(w).Encode(codegens)
 }

@@ -1,5 +1,8 @@
+import { useCart } from "./Contexts";
+
 // About Component
 export default function About() {
+
     return (
         <div className="home">
             <header className="hero">

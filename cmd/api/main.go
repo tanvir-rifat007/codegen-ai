@@ -73,9 +73,6 @@ func main() {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	// web socket server
-	srv := server.NewServer(cfg.openAiKey, cfg.outputDir)
-
 	db, err := openDB(cfg)
 
 	if err != nil {
@@ -86,6 +83,11 @@ func main() {
 	defer db.Close()
 
 	logger.Info("Database connection pool established!")
+
+	// web socket server
+	srv := server.NewServer(cfg.openAiKey, cfg.outputDir, &data.CodeGenModel{
+		DB: db,
+	})
 
 	mailer, err := mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender)
 	if err != nil {
@@ -110,6 +112,8 @@ func main() {
 	// Setup HTTP routes
 	http.HandleFunc("/", app.handleSSR)
 
+	http.Handle("/api/health", app.AuthMiddleware(http.HandlerFunc(app.healthcheckHandler)))
+
 	http.HandleFunc("/api/users", app.createUserHandler)
 
 	http.HandleFunc("/api/users/authenticate", app.loginUserHandler)
@@ -117,10 +121,13 @@ func main() {
 	http.HandleFunc("/api/users/me", app.meHandler)
 
 	http.HandleFunc("/api/users/logout", app.logoutHandler)
-	http.HandleFunc("/api/generate", srv.HandleGenerate)
+	http.Handle("/api/generate", app.AuthMiddleware(http.HandlerFunc(srv.HandleGenerate)))
 	http.HandleFunc("/download/", srv.HandleDownload)
 
+	http.HandleFunc("/api/generate-http", srv.HandleGenerateHTTP)
 	http.HandleFunc("/api/activate", app.activateUserHandler)
+
+	http.HandleFunc("/api/history", srv.HandleGetUserHistory)
 
 	fmt.Println("SSR Server starting on http://localhost:3000")
 	fmt.Println("Static files served from /assets/")

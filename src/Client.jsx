@@ -13,6 +13,8 @@ import NotFoundRoute from "./NotFound";
 import User from "./User"
 import SignIn from "./SignIn";
 import { CartContext } from "./contexts";
+import ProtectedRoute from "./ProtectedRoute";
+
 // Define routes
 const rootRoute = createRootRoute({
     component: Layout,
@@ -25,8 +27,14 @@ const homeRoute = createRoute({
     component: Home,
 });
 
-const generateCodeRoute = createRoute({
+const protectedRoute = createRoute({
     getParentRoute: () => rootRoute,
+    id: "protected",
+    component: ProtectedRoute,
+});
+
+const generateCodeRoute = createRoute({
+    getParentRoute: () => protectedRoute,
     path: "/generate-code",
     component: AICodeGenerator,
 });
@@ -41,19 +49,17 @@ const registerUserRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: "/register",
     component: User,
-})
-
+});
 
 const signinUserRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: "/sign-in",
     component: SignIn,
-})
+});
 
-// Create route tree
 const routeTree = rootRoute.addChildren([
     homeRoute,
-    generateCodeRoute,
+    protectedRoute.addChildren([generateCodeRoute]),
     aboutRoute,
     registerUserRoute,
     signinUserRoute,
@@ -66,13 +72,12 @@ const router = createRouter({
 });
 
 function App() {
-    return <CartContext>
-
-        <RouterProvider router={router} />
-
-    </CartContext>;
+    return (
+        <CartContext>
+            <RouterProvider router={router} />
+        </CartContext>
+    );
 }
 
 const root = createRoot(document.getElementById("root"));
 root.render(<App />);
-

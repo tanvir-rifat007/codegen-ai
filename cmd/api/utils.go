@@ -108,11 +108,6 @@ func (app *application) initializeApp() error {
 	}
 	htmlShell = string(shell)
 
-	// Debug: Print the HTML shell to see what we're working with
-	fmt.Println("=== HTML Shell Content ===")
-	fmt.Println(htmlShell)
-	fmt.Println("=== End HTML Shell ===")
-
 	// Read and transform App.js once at startup
 	code, err := os.ReadFile("app.js")
 	if err != nil {
@@ -165,13 +160,9 @@ func (app *application) handleSSR(w http.ResponseWriter, r *http.Request) {
 	}
 
 	renderedHTML := result.String()
-	fmt.Printf("Generated HTML content: %s\n", renderedHTML)
 
 	// Replace the placeholder with the rendered content
 	htmlContent := strings.Replace(htmlShell, "<!--ROOT-->", renderedHTML, 1)
-
-	// Debug: Print final HTML
-	fmt.Printf("Final HTML being sent:\n%s\n", htmlContent)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
