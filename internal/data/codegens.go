@@ -7,8 +7,8 @@ import (
 )
 
 type CodenGen struct {
-	ID          int    `json:"id"`      // Changed from string to int
-	UserID      int    `json:"user_id"` // Changed from string to int
+	ID          int    `json:"id"`
+	UserID      int    `json:"user_id"`
 	Language    string `json:"language"`
 	Template    string `json:"template"`
 	BasePackage string `json:"basePackage"`

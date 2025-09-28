@@ -127,6 +127,10 @@ func main() {
 	http.HandleFunc("/api/generate-http", srv.HandleGenerateHTTP)
 	http.HandleFunc("/api/activate", app.activateUserHandler)
 
+	// password reset and update handler
+	http.HandleFunc("/api/tokens/password-reset", app.createPasswordResetTokenHandler)
+	http.HandleFunc("/api/users/password", app.updateUserPasswordHandler)
+
 	http.HandleFunc("/api/history", srv.HandleGetUserHistory)
 
 	fmt.Println("SSR Server starting on http://localhost:3000")

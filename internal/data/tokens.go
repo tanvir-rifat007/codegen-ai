@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	ScopeActivation = "activation"
+	ScopeActivation    = "activation"
+	ScopePasswordReset = "password-reset"
 )
 
 type Token struct {
@@ -55,6 +56,7 @@ func (m TokenModel) New(userID int, ttl time.Duration, scope string) (*Token, er
 	token := generateToken(userID, ttl, scope)
 
 	err := m.Insert(token)
+
 	return token, err
 }
 

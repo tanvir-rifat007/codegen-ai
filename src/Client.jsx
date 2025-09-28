@@ -14,6 +14,8 @@ import User from "./User"
 import SignIn from "./SignIn";
 import { CartContext } from "./contexts";
 import ProtectedRoute from "./ProtectedRoute";
+import ForgotPassword from "./ForgotPassword";
+import ResetPassword from "./ResetPassword";
 
 // Define routes
 const rootRoute = createRootRoute({
@@ -39,6 +41,21 @@ const generateCodeRoute = createRoute({
     component: AICodeGenerator,
 });
 
+const forgotPasswordRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/user/forgot-password",
+    component: ForgotPassword,
+});
+
+
+const resetPasswordRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/reset-password",
+    component: ResetPassword,
+});
+
+
+
 const aboutRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: "/about",
@@ -57,12 +74,15 @@ const signinUserRoute = createRoute({
     component: SignIn,
 });
 
+// Update route tree - forgot password is now a direct child of root
 const routeTree = rootRoute.addChildren([
     homeRoute,
-    protectedRoute.addChildren([generateCodeRoute]),
+    protectedRoute.addChildren([generateCodeRoute]), // Only generate-code remains protected
     aboutRoute,
     registerUserRoute,
     signinUserRoute,
+    forgotPasswordRoute, // Now a direct child of root route
+    resetPasswordRoute,
 ]);
 
 // Create router

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 const User = () => {
     const [formData, setFormData] = useState({
@@ -88,7 +88,11 @@ const User = () => {
 
             if (data.user) {
                 setToast({ message: "✅ Account created successfully and please verify your email before login!", type: "success" });
-                await navigate({ to: "/sign-in" })
+                setTimeout(() => {
+                    navigate({ to: '/sign-in' })
+                }, 1000);
+
+
             } else {
                 setToast({ message: `⚠️ ${data.error.email}`, type: "error" });
             }
@@ -200,7 +204,7 @@ const User = () => {
 
                         {/* Auth Links */}
                         <div className="auth-links">
-                            <p>Already have an account? <a href="/sign-in" className="auth-link">Sign In</a></p>
+                            <p>Already have an account? <Link to="/sign-in" className="auth-link">Sign In</Link></p>
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useCart } from "./contexts";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate, Link } from "@tanstack/react-router";
 
 const SignIn = () => {
     const [formData, setFormData] = useState({
@@ -75,14 +75,12 @@ const SignIn = () => {
                     credentials: "include",
                 })
 
-
-
                 if (meDataRes.ok) {
                     const meData = await meDataRes.json()
                     console.log("User data from /me:", meData)
 
                     // Update the user context with the fresh data
-                    if (meData.user) {
+                    if (meData.user && meData.user.activated) {
                         setUser(meData.user)
                         setToast({ message: "✅ Successfully logged in!", type: "success" });
 
@@ -90,7 +88,13 @@ const SignIn = () => {
                         setTimeout(() => {
                             navigate({ to: '/' })
                         }, 1000);
-                    } else {
+                    }
+                    else if (!meData.user.activated) {
+
+                        setToast({ message: "⚠️ Activate Your email first before login", type: "error" });
+                    }
+
+                    else {
                         throw new Error("User data not found in response")
                     }
                 } else {
@@ -114,21 +118,16 @@ const SignIn = () => {
         }
     }
 
-
-
-    const handleForgotPassword = () => {
-        // Handle forgot password logic
-        console.log('Forgot password clicked');
+    const handleForgotPassword = (e) => {
+        e.preventDefault()
+        navigate({ to: '/user/forgot-password' });
     };
-
 
     const toastStyles = {
         success: { background: "#4CAF50" },
         error: { background: "#F44336" },
         info: { background: "#2196F3" },
     };
-
-
 
     return (
         <div className="user-register">
@@ -148,7 +147,6 @@ const SignIn = () => {
                     {toast.message}
                 </div>
             )}
-
 
             <form onSubmit={handleSubmit}>
                 <div className="form-container">
@@ -181,7 +179,13 @@ const SignIn = () => {
 
                             {/* Password Field */}
                             <div className="form-group">
-                                <label htmlFor="password" className="form-label">Password</label>
+                                <div className="password-label-container">
+                                    <label htmlFor="password" className="form-label">Password</label>
+
+                                    <Link to="/user/forgot-password" className="forgot-password-link">
+                                        Forgot Password?
+                                    </Link>
+                                </div>
                                 <div className="password-input-container">
                                     <input
                                         type={showPassword ? "text" : "password"}
@@ -209,7 +213,6 @@ const SignIn = () => {
                                 )}
                             </div>
 
-
                             {/* Submit Button */}
                             <div className="form-actions">
                                 <button
@@ -222,10 +225,9 @@ const SignIn = () => {
                             </div>
                         </div>
 
-
                         {/* Auth Links */}
                         <div className="auth-links">
-                            <p>Don't have an account? <a href="/register" className="auth-link">Create Account</a></p>
+                            <p>Don't have an account? <Link to="/register" className="auth-link">Create Account</Link></p>
                         </div>
                     </div>
                 </div>

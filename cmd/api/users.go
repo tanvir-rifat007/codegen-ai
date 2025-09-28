@@ -250,3 +250,85 @@ func (app *application) logoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+// Verify the password reset token and set a new password for the user.
+func (app *application) updateUserPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse and validate the user's new password and password reset token.
+	var input struct {
+		Password string `json:"password"`
+		Token    string `json:"token"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	v := validator.New()
+
+	data.ValidatePasswordPlaintext(v, input.Password)
+	data.ValidateTokenPlaintext(v, input.Token)
+
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	// Retrieve the details of the user associated with the password reset token,
+	// returning an error message if no matching record was found.
+	user, err := app.models.Users.GetForToken(data.ScopePasswordReset, input.Token)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			v.AddError("token", "invalid or expired password reset token")
+			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	// Set the new password for the user.
+	err = user.Password.Set(input.Password)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// Save the updated user record in our database, checking for any edit conflicts as
+	// normal.
+	err = app.models.Users.Update(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	// If everything was successful, then delete all password reset tokens for the user.
+
+	intId, err := strconv.Atoi(user.ID)
+
+	if err != nil {
+		app.logger.Error(err.Error())
+		return
+	}
+
+	err = app.models.Tokens.DeleteAllForUser(data.ScopePasswordReset, intId)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// Send the user a confirmation message.
+	env := envelope{"message": "your password was successfully reset"}
+
+	err = app.writeJSON(w, http.StatusOK, env, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
