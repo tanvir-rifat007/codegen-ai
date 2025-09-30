@@ -35,9 +35,10 @@ WORKDIR /app
 COPY --from=backend-builder /app/app .
 # Copy the built frontend
 COPY --from=backend-builder /app/dist ./dist
-# Copy App.js (needed at runtime)
+# Copy source files needed at runtime
 COPY --from=backend-builder /app/App.js .
-# Copy email templates (adjust path as needed)
+COPY --from=backend-builder /app/index.html .
+# Copy email templates
 COPY --from=backend-builder /app/internal/mailer/templates ./internal/mailer/templates
 # Expose port
 EXPOSE 8080
