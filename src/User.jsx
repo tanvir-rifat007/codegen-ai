@@ -113,6 +113,8 @@ const User = () => {
 
     return (
         <div className="user-register">
+
+            <title>🚀 Codegen AI Agent | Register</title>
             {/* ✅ Toast Container */}
             {toast && (
                 <div style={{

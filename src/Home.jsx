@@ -6,6 +6,7 @@ const Home = () => {
     const { user } = useCart()
     return (
         <div className="home">
+            <title>🚀 Codegen AI Agent | Home</title>
             {/* Hero Section */}
             <header className="hero">
                 <h1 className="title">🚀 Codegen AI Agent</h1>

@@ -132,6 +132,8 @@ const SignIn = () => {
     return (
         <div className="user-register">
 
+            <title>🚀 Codegen AI Agent | SignIn</title>
+
             {toast && (
                 <div style={{
                     position: "fixed",

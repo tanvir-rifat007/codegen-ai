@@ -771,6 +771,9 @@ const AICodeGenerator = () => {
             `}</style>
 
             <div className="app-container">
+
+                <title>🚀 Codegen AI Agent | Generate Code</title>
+
                 {/* Mobile Overlay */}
                 <div
                     className="sidebar-overlay"

@@ -84,72 +84,76 @@ const ForgotPassword = () => {
 
     if (isSuccess) {
         return (
-            <div className="user-register">
-                {toast && (
-                    <div style={{
-                        position: "fixed",
-                        top: "20px",
-                        right: "20px",
-                        color: "#fff",
-                        padding: "10px 20px",
-                        borderRadius: "6px",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                        zIndex: 1000,
-                        ...toastStyles[toast.type || "info"]
-                    }}>
-                        {toast.message}
-                    </div>
-                )}
+            <>
 
-                <div className="form-container">
-                    <div className="generator-form">
-                        <div className="register-header">
-                            <div className="success-icon">
-                                ✉️
-                            </div>
-                            <h1 className="register-title">Check Your Email</h1>
-                            <p className="register-subtitle">
-                                We've sent a password reset link to <strong>{email}</strong>
-                            </p>
+                <title>🚀 Codegen AI Agent | Forgot Password</title>
+                <div className="user-register">
+                    {toast && (
+                        <div style={{
+                            position: "fixed",
+                            top: "20px",
+                            right: "20px",
+                            color: "#fff",
+                            padding: "10px 20px",
+                            borderRadius: "6px",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                            zIndex: 1000,
+                            ...toastStyles[toast.type || "info"]
+                        }}>
+                            {toast.message}
                         </div>
+                    )}
 
-                        <div className="form-grid">
-                            <div className="success-message">
-                                <p>
-                                    Click the link in your email to reset your password.
-                                    The link will expire in 45 minutes for security reasons.
-                                </p>
-                                <p>
-                                    Didn't receive the email? Check your spam folder or try again.
+                    <div className="form-container">
+                        <div className="generator-form">
+                            <div className="register-header">
+                                <div className="success-icon">
+                                    ✉️
+                                </div>
+                                <h1 className="register-title">Check Your Email</h1>
+                                <p className="register-subtitle">
+                                    We've sent a password reset link to <strong>{email}</strong>
                                 </p>
                             </div>
 
-                            <div className="form-actions">
-                                <button
-                                    type="button"
-                                    className="generate-btn"
-                                    onClick={handleBackToSignIn}
-                                >
-                                    Back to Sign In
-                                </button>
-                            </div>
+                            <div className="form-grid">
+                                <div className="success-message">
+                                    <p>
+                                        Click the link in your email to reset your password.
+                                        The link will expire in 45 minutes for security reasons.
+                                    </p>
+                                    <p>
+                                        Didn't receive the email? Check your spam folder or try again.
+                                    </p>
+                                </div>
 
-                            <div className="form-actions">
-                                <button
-                                    type="button"
-                                    className="secondary-btn"
-                                    onClick={() => {
-                                        setIsSuccess(false);
-                                        setEmail('');
-                                    }}
-                                >
-                                    Try Different Email
-                                </button>
+                                <div className="form-actions">
+                                    <button
+                                        type="button"
+                                        className="generate-btn"
+                                        onClick={handleBackToSignIn}
+                                    >
+                                        Back to Sign In
+                                    </button>
+                                </div>
+
+                                <div className="form-actions">
+                                    <button
+                                        type="button"
+                                        className="secondary-btn"
+                                        onClick={() => {
+                                            setIsSuccess(false);
+                                            setEmail('');
+                                        }}
+                                    >
+                                        Try Different Email
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </>
         );
     }
 

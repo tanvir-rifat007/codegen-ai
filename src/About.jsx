@@ -4,6 +4,8 @@ export default function About() {
 
     return (
         <div className="home">
+
+            <title>🚀 Codegen AI Agent | About</title>
             <header className="hero">
                 <h1 className="title">About Codegen AI</h1>
                 <p className="subtitle">Learn more about our AI-powered code generation platform</p>
