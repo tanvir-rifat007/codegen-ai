@@ -63,12 +63,6 @@ func main() {
 
 	flag.StringVar(&cfg.db.dsn, "db-url", os.Getenv("DB_URL"), "Database url")
 
-	flag.StringVar(&cfg.smtp.host, "smtp-host", os.Getenv("FROM_EMAIL_SMTP"), "SMTP host")
-	flag.IntVar(&cfg.smtp.port, "smtp-port", 587, "SMTP port")
-	flag.StringVar(&cfg.smtp.username, "smtp-username", os.Getenv("FROM_EMAIL"), "SMTP username")
-	flag.StringVar(&cfg.smtp.password, "smtp-password", os.Getenv("FROM_EMAIL_PASSWORD"), "SMTP password")
-	flag.StringVar(&cfg.smtp.sender, "smtp-sender", os.Getenv("FROM_EMAIL"), "SMTP sender")
-
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -89,17 +83,10 @@ func main() {
 		DB: db,
 	})
 
-	mailer, err := mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender)
-	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
-	}
-
 	app := &application{
 		config: cfg,
 		logger: logger,
 		models: data.NewModels(db),
-		mailer: mailer,
 	}
 
 	err = app.initializeApp()

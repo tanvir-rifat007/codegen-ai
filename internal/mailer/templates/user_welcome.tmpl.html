@@ -1,33 +1,3 @@
-{{define "subject"}}Welcome to Maker - AI For Everyone{{end}}
-
-{{define "plainBody"}}
-Hi there,
-
-Welcome to Maker - AI For Everyone!
-
-We're thrilled to have you join our community of developers and AI enthusiasts. Your journey into AI-powered code
-generation starts here.
-
-Your User Details:
-- User ID: {{.ID}}
-- Email: {{.Email}}
-
-To get started, please activate your account by clicking the link below:
-http://localhost:3000/api/activate?token={{.activationToken}}
-
-What's Next?
-- Activate your account
-- Explore our AI code generation tools
-- Start building amazing projects with AI assistance
-
-If you have any questions, our support team is here to help.
-
-Best regards,
-The Maker Team
-AI For Everyone
-{{end}}
-
-{{define "htmlBody"}}
 <!doctype html>
 <html lang="en">
 
@@ -319,7 +289,8 @@ AI For Everyone
                     <strong>Ready to get started?</strong><br>
                     Activate your account to unlock the full power of AI-driven development.
                 </div>
-                <a href="http://localhost:3000/api/activate?token={{.activationToken}}" class="activate-btn">
+                <a href="https://codegen-ai-production.up.railway.app/api/activate?token={{.activationToken}}"
+                    class="activate-btn">
                     Activate Your Account
                 </a>
             </div>
@@ -359,4 +330,3 @@ AI For Everyone
 </body>
 
 </html>
-{{end}}

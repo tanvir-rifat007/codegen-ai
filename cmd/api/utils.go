@@ -1,15 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"net/smtp"
 	"net/url"
 	"os"
 	"strings"
+	"text/template"
 
 	"rogchap.com/v8go"
 )
@@ -316,4 +319,41 @@ func (app *application) readString(qs url.Values, key string, defaultValue strin
 
 	return s
 
+}
+
+func (app *application) sendEmail(to []string, subject string, templateFile string, data any) error {
+	auth := smtp.PlainAuth("", os.Getenv("FROM_EMAIL"), os.Getenv("FROM_EMAIL_PASSWORD"), os.Getenv("FROM_EMAIL_SMTP"))
+
+	tmpl, err := template.ParseFiles(templateFile)
+	if err != nil {
+		return err
+	}
+
+	buf := new(bytes.Buffer)
+	err = tmpl.Execute(buf, data)
+	if err != nil {
+		return err
+	}
+
+	headers := map[string]string{
+		"From":         os.Getenv("FROM_EMAIL"),
+		"To":           strings.Join(to, ","),
+		"Subject":      subject,
+		"MIME-Version": "1.0",
+		"Content-Type": "text/html; charset=\"UTF-8\"",
+	}
+
+	var message strings.Builder
+	for k, v := range headers {
+		message.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+	}
+	message.WriteString("\r\n" + buf.String())
+
+	return smtp.SendMail(
+		os.Getenv("SMTP_ADDR"),
+		auth,
+		os.Getenv("FROM_EMAIL"),
+		to,
+		[]byte(message.String()),
+	)
 }
