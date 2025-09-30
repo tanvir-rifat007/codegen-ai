@@ -80,7 +80,7 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 		}
 
 		// Send the welcome email, passing in the map above as dynamic data.
-		err := app.sendEmail([]string{user.Email}, "user_activations", "./internal/mailer/templates/user_welcome.tmpl.html", data)
+		err := app.mailer.Send(user.Email, "user_welcome.tmpl.html", data)
 		if err != nil {
 			app.logger.Error(err.Error())
 		}
