@@ -33,6 +33,7 @@ COPY src/ ./src/
 
 # Copy built frontend from previous stage
 COPY --from=frontend-builder /app/dist ./dist
+COPY --from=frontend-builder /app/App.js ./
 
 # Build Go application with CGO enabled (required for v8go)
 RUN CGO_ENABLED=1 go build -o app ./cmd/api
