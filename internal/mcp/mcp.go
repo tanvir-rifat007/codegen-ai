@@ -49,7 +49,7 @@ type GenerateRequest struct {
 func NewMCPgreenlightServer() *MCPgreenlightServer {
 	url := os.Getenv("API_BASE_URL")
 	if url == "" {
-		url = "http://localhost:3000/api"
+		url = "https://codegen-ai-production.up.railway.app/api"
 	}
 
 	// Create cookie jar to handle cookies automatically
