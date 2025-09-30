@@ -8,7 +8,7 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci
 
-# Copy frontend source (make sure .dockerignore isn't blocking necessary files)
+# Copy all necessary files for build
 COPY src/ ./src/
 COPY index.html ./
 COPY babel.config.js ./
@@ -29,10 +29,12 @@ RUN go mod download
 # Copy Go source
 COPY cmd/ ./cmd/
 COPY internal/ ./internal/
-COPY src/ ./src/
+COPY migrations/ ./migrations/
 
 # Copy built frontend from previous stage
 COPY --from=frontend-builder /app/dist ./dist
+
+# Copy App.js to root (needed at runtime by Go app)
 COPY --from=frontend-builder /app/App.js ./
 
 # Build Go application with CGO enabled (required for v8go)
@@ -52,10 +54,13 @@ WORKDIR /app
 # Copy the Go binary
 COPY --from=backend-builder /app/app .
 
+# Copy App.js to root directory (Go app reads this at runtime)
+COPY --from=backend-builder /app/App.js ./
+
 # Copy the built frontend (includes dist/assets with Home.css)
 COPY --from=backend-builder /app/dist ./dist
 
-# Copy email templates
+# Copy internal directory (includes email templates)
 COPY --from=backend-builder /app/internal ./internal
 
 # Expose port
