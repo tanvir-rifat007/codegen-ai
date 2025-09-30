@@ -7,8 +7,8 @@ COPY package*.json ./
 RUN npm ci
 # Copy frontend source
 COPY . .
-# Build frontend (outputs to dist/ or build/)
-RUN npm run build
+# Build frontend and copy Home.css
+RUN npm run build && cp src/Home.css dist/assets/
 
 # Stage 2: Build Go Backend
 FROM golang:1.24-bookworm AS backend-builder
@@ -33,11 +33,8 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 # Copy the Go binary
 COPY --from=backend-builder /app/app .
-# Copy the built frontend
+# Copy the built frontend (includes dist/assets with Home.css)
 COPY --from=backend-builder /app/dist ./dist
-# Copy source files needed at runtime
-COPY --from=backend-builder /app/App.js .
-COPY --from=backend-builder /app/index.html .
 # Copy email templates
 COPY --from=backend-builder /app/internal/mailer/templates ./internal/mailer/templates
 # Expose port
