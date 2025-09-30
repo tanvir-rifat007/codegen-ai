@@ -111,7 +111,7 @@ func (app *application) initializeApp() error {
 	// Read and transform App.js once at startup
 	code, err := os.ReadFile("App.js")
 	if err != nil {
-		return fmt.Errorf("error reading app.js: %w", err)
+		return fmt.Errorf("error reading App.js: %w", err)
 	}
 	appCode = string(code)
 
