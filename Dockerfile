@@ -16,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Build Go Backend
-FROM golang:1.24-alpine AS backend-builder
+FROM golang:1.24-bookworm AS backend-builder
 
 WORKDIR /app
 
@@ -32,14 +32,17 @@ COPY --from=frontend-builder /app/dist ./dist
 # If your build outputs to 'build' instead of 'dist', use:
 # COPY --from=frontend-builder /app/build ./build
 
-# Build Go application
-RUN CGO_ENABLED=0 GOOS=linux go build -o app ./cmd/api
+# Build Go application with CGO enabled (required for v8go)
+RUN CGO_ENABLED=1 go build -o app ./cmd/api
 
 # Stage 3: Final Runtime
-FROM alpine:latest
+FROM debian:bookworm-slim
 
-# Install CA certificates and timezone data
-RUN apk --no-cache add ca-certificates tzdata
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    tzdata \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -54,7 +57,7 @@ COPY --from=backend-builder /app/dist ./dist
 # Copy email templates (adjust path as needed)
 COPY --from=backend-builder /app/internal/mailer/templates ./internal/mailer/templates
 
-# Expose port (Railway will use PORT env var, but default to 8080)
+# Expose port
 EXPOSE 8080
 
 # Run the application
