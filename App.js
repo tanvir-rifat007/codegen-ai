@@ -30,10 +30,6 @@ function Home() {
                 h("p", null, "Works across Go, JavaScript, Python, and more. Your stack, your rules.")
             )
         ),
-        // Footer
-        h("footer", { className: "footer" },
-            h("p", null, `© ${new Date().getFullYear()} Codegen AI Agent. Built for developers.`)
-        )
     );
 }
 
@@ -749,7 +745,12 @@ function App(props) {
                 )
             )
         ),
-        h("main", { className: "main-content" }, h(PageComponent))
+        h("main", { className: "main-content" }, h(PageComponent)),
+        h("footer", { className: "footer" },
+            h("p", null, `© ${new Date().getFullYear()} Codegen AI Agent. Built for developers.`)
+        )
+
+
     );
 
 }

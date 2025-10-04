@@ -58,10 +58,6 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="footer">
-                <p>© {new Date().getFullYear()} Codegen AI Agent. Built for developers.</p>
-            </footer>
         </div>
     );
 };

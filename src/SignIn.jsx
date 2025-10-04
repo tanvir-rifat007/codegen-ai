@@ -130,111 +130,114 @@ const SignIn = () => {
     };
 
     return (
-        <div className="user-register">
+        <>
+            <div className="user-register">
 
-            <title>🚀 Codegen AI Agent | SignIn</title>
+                <title>🚀 Codegen AI Agent | SignIn</title>
 
-            {toast && (
-                <div style={{
-                    position: "fixed",
-                    top: "20px",
-                    right: "20px",
-                    color: "#fff",
-                    padding: "10px 20px",
-                    borderRadius: "6px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                    zIndex: 1000,
-                    ...toastStyles[toast.type || "info"]
-                }}>
-                    {toast.message}
-                </div>
-            )}
+                {toast && (
+                    <div style={{
+                        position: "fixed",
+                        top: "20px",
+                        right: "20px",
+                        color: "#fff",
+                        padding: "10px 20px",
+                        borderRadius: "6px",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                        zIndex: 1000,
+                        ...toastStyles[toast.type || "info"]
+                    }}>
+                        {toast.message}
+                    </div>
+                )}
 
-            <form onSubmit={handleSubmit}>
-                <div className="form-container">
-                    <div className="generator-form">
-                        <div className="register-header">
-                            <h1 className="register-title">Welcome Back</h1>
-                            <p className="register-subtitle">Sign in to your Maker account</p>
-                        </div>
-
-                        <div className="form-grid">
-                            {/* Email Field */}
-                            <div className="form-group">
-                                <label htmlFor="email" className="form-label">Email Address</label>
-                                <input
-                                    type="email"
-                                    placeholder="example@email.com"
-                                    name="email"
-                                    id="email"
-                                    className="form-input"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    autoComplete="email"
-                                />
-                                {errors.email && (
-                                    <div className="form-error">
-                                        ⚠️ {errors.email}
-                                    </div>
-                                )}
+                <form onSubmit={handleSubmit}>
+                    <div className="form-container">
+                        <div className="generator-form">
+                            <div className="register-header">
+                                <h1 className="register-title">Welcome Back</h1>
+                                <p className="register-subtitle">Sign in to your Maker account</p>
                             </div>
 
-                            {/* Password Field */}
-                            <div className="form-group">
-                                <div className="password-label-container">
-                                    <label htmlFor="password" className="form-label">Password</label>
-
-                                    <Link to="/user/forgot-password" className="forgot-password-link">
-                                        Forgot Password?
-                                    </Link>
-                                </div>
-                                <div className="password-input-container">
+                            <div className="form-grid">
+                                {/* Email Field */}
+                                <div className="form-group">
+                                    <label htmlFor="email" className="form-label">Email Address</label>
                                     <input
-                                        type={showPassword ? "text" : "password"}
-                                        name="password"
-                                        id="password"
-                                        className="form-input password-input"
-                                        placeholder="Enter your password"
-                                        value={formData.password}
+                                        type="email"
+                                        placeholder="example@email.com"
+                                        name="email"
+                                        id="email"
+                                        className="form-input"
+                                        value={formData.email}
                                         onChange={handleInputChange}
-                                        autoComplete="current-password"
+                                        autoComplete="email"
                                     />
+                                    {errors.email && (
+                                        <div className="form-error">
+                                            ⚠️ {errors.email}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Password Field */}
+                                <div className="form-group">
+                                    <div className="password-label-container">
+                                        <label htmlFor="password" className="form-label">Password</label>
+
+                                        <Link to="/user/forgot-password" className="forgot-password-link">
+                                            Forgot Password?
+                                        </Link>
+                                    </div>
+                                    <div className="password-input-container">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            name="password"
+                                            id="password"
+                                            className="form-input password-input"
+                                            placeholder="Enter your password"
+                                            value={formData.password}
+                                            onChange={handleInputChange}
+                                            autoComplete="current-password"
+                                        />
+                                        <button
+                                            type="button"
+                                            className="password-toggle"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            aria-label={showPassword ? "Hide password" : "Show password"}
+                                        >
+                                            {showPassword ? "👁️" : "👁️‍🗨️"}
+                                        </button>
+                                    </div>
+                                    {errors.password && (
+                                        <div className="form-error">
+                                            ⚠️ {errors.password}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Submit Button */}
+                                <div className="form-actions">
                                     <button
-                                        type="button"
-                                        className="password-toggle"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                        type="submit"
+                                        className="generate-btn"
+                                        disabled={isSubmitting}
                                     >
-                                        {showPassword ? "👁️" : "👁️‍🗨️"}
+                                        {isSubmitting ? 'Signing In...' : 'Sign In'}
                                     </button>
                                 </div>
-                                {errors.password && (
-                                    <div className="form-error">
-                                        ⚠️ {errors.password}
-                                    </div>
-                                )}
                             </div>
 
-                            {/* Submit Button */}
-                            <div className="form-actions">
-                                <button
-                                    type="submit"
-                                    className="generate-btn"
-                                    disabled={isSubmitting}
-                                >
-                                    {isSubmitting ? 'Signing In...' : 'Sign In'}
-                                </button>
+                            {/* Auth Links */}
+                            <div className="auth-links">
+                                <p>Don't have an account? <Link to="/register" className="auth-link">Create Account</Link></p>
                             </div>
-                        </div>
-
-                        {/* Auth Links */}
-                        <div className="auth-links">
-                            <p>Don't have an account? <Link to="/register" className="auth-link">Create Account</Link></p>
                         </div>
                     </div>
-                </div>
-            </form>
-        </div>
+                </form>
+
+            </div>
+        </>
     );
 };
 

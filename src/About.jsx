@@ -1,3 +1,4 @@
+import Footer from "./Footer";
 
 // About Component
 export default function About() {
@@ -24,6 +25,7 @@ export default function About() {
                     <p>Built with love for the developer community. Contribute and help us improve!</p>
                 </div>
             </section>
+            <Footer />
         </div>
     );
 };

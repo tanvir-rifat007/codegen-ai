@@ -1,3 +1,5 @@
+import Footer from "./Footer";
+
 export default function NotFoundRoute() {
     return (
         <div className="home">
@@ -11,6 +13,7 @@ export default function NotFoundRoute() {
                     Go Home
                 </button>
             </header>
+            <Footer />
         </div>
     )
 }

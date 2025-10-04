@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useCart } from "./Contexts";
+import Footer from "./Footer";
 
 export default function Layout() {
     const { user, isLoading, logoutUser } = useCart()
@@ -185,6 +186,7 @@ export default function Layout() {
             <main className="main-content">
                 <Outlet />
             </main>
+            <Footer />
         </div>
     );
 }
