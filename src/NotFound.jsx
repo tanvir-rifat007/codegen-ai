@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import Footer from "./Footer";
 
 export default function NotFoundRoute() {
@@ -6,12 +7,9 @@ export default function NotFoundRoute() {
             <header className="hero">
                 <h1 className="title">404 - Page Not Found</h1>
                 <p className="subtitle">The page you're looking for doesn't exist.</p>
-                <button
-                    className="cta-btn"
-                    onClick={() => (window.location.href = "/")}
-                >
+                <Link to="/" className="cta-btn" style={{ textDecoration: 'none' }}>
                     Go Home
-                </button>
+                </Link>
             </header>
             <Footer />
         </div>
