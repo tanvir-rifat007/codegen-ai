@@ -159,6 +159,34 @@ const SignIn = () => {
                                 <p className="register-subtitle">Sign in to your Maker account</p>
                             </div>
 
+                            {/* Test Account Notice */}
+                            <div style={{
+                                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                color: "#fff",
+                                padding: "12px 16px",
+                                borderRadius: "8px",
+                                marginBottom: "20px",
+                                border: "1px solid rgba(255,255,255,0.2)",
+                                boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+                            }}>
+                                <p style={{ margin: 0, fontSize: "14px", fontWeight: "500" }}>
+                                    🧪 <strong>Try Test Account:</strong>
+                                </p>
+                                <p style={{ margin: "4px 0 0 0", fontSize: "13px" }}>
+                                    Email: <code style={{
+                                        background: "rgba(255,255,255,0.2)",
+                                        padding: "2px 6px",
+                                        borderRadius: "4px",
+                                        fontFamily: "monospace"
+                                    }}>test@gmail.com</code> | Password: <code style={{
+                                        background: "rgba(255,255,255,0.2)",
+                                        padding: "2px 6px",
+                                        borderRadius: "4px",
+                                        fontFamily: "monospace"
+                                    }}>12345678</code>
+                                </p>
+                            </div>
+
                             <div className="form-grid">
                                 {/* Email Field */}
                                 <div className="form-group">
