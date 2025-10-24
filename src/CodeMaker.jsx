@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 
 import { Menu, Plus, MessageSquare, Trash2, Edit3, Check, X } from 'lucide-react';
 import { useCart } from "./Contexts"
+import { DeleteConfirmationModal } from "./DeleteModal";
 
 const AICodeGenerator = () => {
     const [isGenerating, setIsGenerating] = useState(false);
@@ -22,6 +23,12 @@ const AICodeGenerator = () => {
         prompt: '',
         projectName: ''
     });
+
+
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [chatToDelete, setChatToDelete] = useState(null);
+
+
     const { user } = useCart()
 
     const { id } = user;
@@ -134,10 +141,35 @@ const AICodeGenerator = () => {
         }
     };
 
-    const deleteChat = (chatId) => {
-        setChatHistory(prev => prev.filter(chat => chat.id !== chatId));
-        if (currentChatId === chatId) {
-            startNewChat();
+
+    const deleteChat = async (chatId) => {
+        try {
+            const response = await fetch(`https://codegen-ai-production.up.railway.app/api/codegen/delete?id=${chatId}&user_id=${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.text();
+                throw new Error(`Failed to delete: ${errorData}`);
+            }
+
+            const result = await response.json();
+
+            setChatHistory(prev => prev.filter(chat => chat.id !== chatId));
+
+            if (currentChatId === chatId) {
+                startNewChat();
+            }
+
+            setDeleteModalOpen(false);
+            setChatToDelete(null);
+
+        } catch (error) {
+            console.error('Error deleting chat:', error);
+            alert('Failed to delete code generation. Please try again.');
         }
     };
 
@@ -861,15 +893,18 @@ const AICodeGenerator = () => {
                                                 >
                                                     <Edit3 size={12} />
                                                 </button>
+
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        deleteChat(chat.id);
+                                                        setChatToDelete(chat);
+                                                        setDeleteModalOpen(true);
                                                     }}
                                                     className="chat-action-btn delete"
                                                 >
                                                     <Trash2 size={12} />
                                                 </button>
+
                                             </div>
                                         </>
                                     )}
@@ -1016,6 +1051,15 @@ const AICodeGenerator = () => {
                     </div>
                 </div>
             </div>
+            <DeleteConfirmationModal
+                isOpen={deleteModalOpen}
+                onClose={() => {
+                    setDeleteModalOpen(false);
+                    setChatToDelete(null);
+                }}
+                onConfirm={() => deleteChat(chatToDelete.id)}
+                chatTitle={chatToDelete?.title}
+            />
         </>
     );
 };

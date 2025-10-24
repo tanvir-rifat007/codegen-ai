@@ -131,7 +131,10 @@ func main() {
 	http.HandleFunc("/api/tokens/password-reset", app.createPasswordResetTokenHandler)
 	http.HandleFunc("/api/users/password", app.updateUserPasswordHandler)
 
+	// for codegen
 	http.HandleFunc("/api/history", srv.HandleGetUserHistory)
+
+	http.HandleFunc("/api/codegen/delete", srv.HandleDeleteCodegen)
 
 	fmt.Println("SSR Server starting on http://localhost:3000")
 	fmt.Println("Static files served from /assets/")

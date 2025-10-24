@@ -104,3 +104,38 @@ func (m *CodeGenModel) CreateWithStringUserID(cg *CodenGen, userIDStr string) er
 	cg.UserID = userID
 	return m.Create(cg)
 }
+
+func (m *CodeGenModel) Delete(id int, userID int) error {
+	query := `
+		DELETE FROM codegen
+		WHERE id = $1 AND user_id = $2`
+
+	result, err := m.DB.Exec(query, id, userID)
+	if err != nil {
+		return fmt.Errorf("failed to delete codegen record: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to check rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("codegen record with id %d not found for user %d", id, userID)
+	}
+
+	return nil
+}
+
+func (m *CodeGenModel) DeleteWithStringUserID(id int, userIDStr string) error {
+	if userIDStr == "" {
+		return fmt.Errorf("user_id cannot be empty")
+	}
+
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		return fmt.Errorf("invalid user_id format: %w", err)
+	}
+
+	return m.Delete(id, userID)
+}

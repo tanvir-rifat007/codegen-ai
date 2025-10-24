@@ -334,3 +334,65 @@ func (s *Server) HandleGetUserHistory(w http.ResponseWriter, r *http.Request) {
 	// Convert to JSON and send response
 	json.NewEncoder(w).Encode(codegens)
 }
+
+func (s *Server) HandleDeleteCodegen(w http.ResponseWriter, r *http.Request) {
+	// Enable CORS
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	if r.Method != "DELETE" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Get codegen ID from query parameter
+	codegenIDStr := r.URL.Query().Get("id")
+	if codegenIDStr == "" {
+		http.Error(w, "id parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	codegenID, err := strconv.Atoi(codegenIDStr)
+	if err != nil {
+		http.Error(w, "Invalid id format", http.StatusBadRequest)
+		return
+	}
+
+	// Get user ID from query parameter
+	userIDStr := r.URL.Query().Get("user_id")
+	if userIDStr == "" {
+		http.Error(w, "user_id parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid user_id format", http.StatusBadRequest)
+		return
+	}
+
+	// Delete the codegen record
+	if err := s.codegenModel.Delete(codegenID, userID); err != nil {
+		log.Printf("Error deleting codegen record: %v", err)
+		if strings.Contains(err.Error(), "not found") {
+			http.Error(w, "Codegen record not found or unauthorized", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Failed to delete codegen record", http.StatusInternalServerError)
+		return
+	}
+
+	// Send success response
+	response := map[string]interface{}{
+		"success": true,
+		"message": "Codegen record deleted successfully",
+	}
+	json.NewEncoder(w).Encode(response)
+}
