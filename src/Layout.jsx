@@ -146,6 +146,12 @@ export default function Layout() {
 
                         {isUserAuthenticated() ? (
                             <>
+                                <Link
+                                    to="/github-settings"
+                                    className={getNavLinkClass('/github-settings')}
+                                >
+                                    GitHub
+                                </Link>
                                 <span className="nav-link user-greeting">
                                     Hello, {user.name}
                                 </span>

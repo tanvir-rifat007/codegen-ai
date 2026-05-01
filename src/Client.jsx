@@ -16,6 +16,7 @@ import { CartContext } from "./Contexts";
 import ProtectedRoute from "./ProtectedRoute";
 import ForgotPassword from "./ForgotPassword";
 import ResetPassword from "./ResetPassword";
+import GitHubSettings from "./GitHubSettings";
 
 // Define routes
 const rootRoute = createRootRoute({
@@ -39,6 +40,12 @@ const generateCodeRoute = createRoute({
     getParentRoute: () => protectedRoute,
     path: "/generate-code",
     component: AICodeGenerator,
+});
+
+const githubSettingsRoute = createRoute({
+    getParentRoute: () => protectedRoute,
+    path: "/github-settings",
+    component: GitHubSettings,
 });
 
 const forgotPasswordRoute = createRoute({
@@ -77,7 +84,7 @@ const signinUserRoute = createRoute({
 // Update route tree - forgot password is now a direct child of root
 const routeTree = rootRoute.addChildren([
     homeRoute,
-    protectedRoute.addChildren([generateCodeRoute]), // Only generate-code remains protected
+    protectedRoute.addChildren([generateCodeRoute, githubSettingsRoute]),
     aboutRoute,
     registerUserRoute,
     signinUserRoute,

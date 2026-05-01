@@ -17,14 +17,16 @@ var (
 )
 
 type User struct {
-	ID        string    `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	Password  Password  `json:"-"`
-	Activated bool      `json:"activated"`
-	Version   int       `json:"-"`
-	JWT       string    `json:"jwt,omitempty"`
+	ID             string    `json:"id"`
+	CreatedAt      time.Time `json:"created_at"`
+	Name           string    `json:"name"`
+	Email          string    `json:"email"`
+	Password       Password  `json:"-"`
+	Activated      bool      `json:"activated"`
+	Version        int       `json:"-"`
+	JWT            string    `json:"jwt,omitempty"`
+	GithubUsername string    `json:"github_username,omitempty"`
+	GithubPAT      string    `json:"-"`
 }
 
 type Password struct {
@@ -195,6 +197,41 @@ func ValidateUser(v *validator.Validator, user *User) {
 	if user.Password.hash == nil {
 		panic("missing password hash for user")
 	}
+}
+
+func (m UserModel) GetByID(id string) (*User, error) {
+	stmt := `SELECT id, name, email, password_hash, created_at, activated, version,
+	         COALESCE(github_username,''), COALESCE(github_pat,'')
+	         FROM users WHERE id = $1`
+
+	var user User
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, stmt, id).Scan(
+		&user.ID, &user.Name, &user.Email, &user.Password.hash,
+		&user.CreatedAt, &user.Activated, &user.Version,
+		&user.GithubUsername, &user.GithubPAT,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+	return &user, nil
+}
+
+func (m UserModel) UpdateGithubSettings(id, username, pat string) error {
+	stmt := `UPDATE users SET github_username = $1, github_pat = $2 WHERE id = $3`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, stmt, username, pat, id)
+	return err
 }
 
 func (m UserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, error) {

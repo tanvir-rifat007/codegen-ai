@@ -251,6 +251,84 @@ func (app *application) logoutHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (app *application) updateGithubSettingsHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		GithubUsername string `json:"github_username"`
+		GithubPAT      string `json:"github_pat"`
+	}
+
+	if err := app.readJSON(w, r, &input); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	jwtStr, err := token.GetAuthCookie(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	parsed, err := token.ValidateJWT(jwtStr, app.logger)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	claims, ok := parsed.Claims.(jwt.MapClaims)
+	if !ok {
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	userID := claims["id"].(string)
+
+	if err := app.models.Users.UpdateGithubSettings(userID, input.GithubUsername, input.GithubPAT); err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	if err := app.writeJSON(w, http.StatusOK, envelope{"message": "GitHub settings updated"}, nil); err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) getGithubSettingsHandler(w http.ResponseWriter, r *http.Request) {
+	jwtStr, err := token.GetAuthCookie(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	parsed, err := token.ValidateJWT(jwtStr, app.logger)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	claims, ok := parsed.Claims.(jwt.MapClaims)
+	if !ok {
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	userID := claims["id"].(string)
+
+	user, err := app.models.Users.GetByID(userID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	result := map[string]any{
+		"github_username": user.GithubUsername,
+		"has_pat":         user.GithubPAT != "",
+	}
+
+	if err := app.writeJSON(w, http.StatusOK, envelope{"github": result}, nil); err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
 // Verify the password reset token and set a new password for the user.
 func (app *application) updateUserPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse and validate the user's new password and password reset token.

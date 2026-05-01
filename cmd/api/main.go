@@ -87,6 +87,8 @@ func main() {
 	// web socket server
 	srv := server.NewServer(cfg.openAiKey, cfg.outputDir, &data.CodeGenModel{
 		DB: db,
+	}, &data.UserModel{
+		DB: db,
 	})
 
 	mailer, err := mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender)
@@ -135,6 +137,17 @@ func main() {
 	http.HandleFunc("/api/history", srv.HandleGetUserHistory)
 
 	http.HandleFunc("/api/codegen/delete", srv.HandleDeleteCodegen)
+
+	http.Handle("/api/users/github", app.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			app.getGithubSettingsHandler(w, r)
+		case http.MethodPut:
+			app.updateGithubSettingsHandler(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
 
 	fmt.Println("SSR Server starting on http://localhost:3000")
 	fmt.Println("Static files served from /assets/")

@@ -1,6 +1,5 @@
 const path = require("node:path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const ReactServerWebpackPlugin = require("react-server-dom-webpack/plugin");
 
 const mode = process.env.NODE_ENV || "development";
 const development = mode === "development";
@@ -27,10 +26,9 @@ const config = {
     plugins: [
         new HtmlWebpackPlugin({
             inject: true,
-            publicPath: "/", // HTML will reference assets from /assets/
+            publicPath: "/",
             template: "./index.html",
         }),
-        new ReactServerWebpackPlugin({ isServer: false }),
     ],
     output: {
         path: path.resolve(__dirname, "dist"),

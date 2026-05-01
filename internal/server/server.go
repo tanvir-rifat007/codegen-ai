@@ -18,6 +18,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/tanvir-rifat007/codegen-ai-react/internal/agents"
 	"github.com/tanvir-rifat007/codegen-ai-react/internal/data"
+	ghupload "github.com/tanvir-rifat007/codegen-ai-react/internal/github"
 )
 
 type Server struct {
@@ -27,6 +28,7 @@ type Server struct {
 	outputBase string
 
 	codegenModel *data.CodeGenModel
+	userModel    *data.UserModel
 }
 
 type WebSocketClient struct {
@@ -64,9 +66,10 @@ type ProgressEvent struct {
 	Error      string `json:"error,omitempty"`
 	ZipURL     string `json:"zipUrl,omitempty"`
 	ProjectDir string `json:"projectDir,omitempty"`
+	GitHubURL  string `json:"githubUrl,omitempty"`
 }
 
-func NewServer(openAIKey, outputBase string, codegenModel *data.CodeGenModel) *Server {
+func NewServer(openAIKey, outputBase string, codegenModel *data.CodeGenModel, userModel *data.UserModel) *Server {
 	if err := os.MkdirAll(outputBase, 0755); err != nil {
 		log.Printf("Failed to create output base directory: %v", err)
 	}
@@ -80,6 +83,7 @@ func NewServer(openAIKey, outputBase string, codegenModel *data.CodeGenModel) *S
 			},
 		},
 		codegenModel: codegenModel,
+		userModel:    userModel,
 	}
 }
 
@@ -235,8 +239,8 @@ func (s *Server) HandleGenerate(w http.ResponseWriter, r *http.Request) {
 	zipPath := filepath.Join(sessionDir, zipName)
 
 	sendEvent(wsClient, ProgressEvent{
-		Type:  "file",
-		Error: "Generating zip file: " + zipName,
+		Type:    "file",
+		Message: "Generating zip file: " + zipName,
 	})
 
 	if err := createZip(projectDir, zipPath); err != nil {
@@ -252,6 +256,31 @@ func (s *Server) HandleGenerate(w http.ResponseWriter, r *http.Request) {
 		Message: "Code generation complete!",
 		ZipURL:  zipURL,
 	})
+
+	// Upload to GitHub if the user has configured credentials.
+	if s.userModel != nil {
+		user, err := s.userModel.GetByID(req.ID)
+		if err == nil && user.GithubPAT != "" {
+			sendEvent(wsClient, ProgressEvent{
+				Type:    "info",
+				Message: "Uploading project to GitHub...",
+			})
+			ghClient := ghupload.NewClient(user.GithubUsername, user.GithubPAT)
+			repoURL, err := ghClient.UploadProject(projectDir, sanitizeRepoName(projectName), true)
+			if err != nil {
+				sendEvent(wsClient, ProgressEvent{
+					Type:    "warning",
+					Message: "GitHub upload failed: " + err.Error(),
+				})
+			} else {
+				sendEvent(wsClient, ProgressEvent{
+					Type:      "githubUrl",
+					Message:   "Project pushed to GitHub!",
+					GitHubURL: repoURL,
+				})
+			}
+		}
+	}
 }
 
 func (s *Server) HandleDownload(w http.ResponseWriter, r *http.Request) {
@@ -284,6 +313,21 @@ func (s *Server) HandleDownload(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/zip")
 	http.ServeFile(w, r, zipPath)
 
+}
+
+func sanitizeRepoName(name string) string {
+	result := strings.ToLower(name)
+	result = strings.Map(func(r rune) rune {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' || r == '.' || r == '_' {
+			return r
+		}
+		return '-'
+	}, result)
+	result = strings.Trim(result, "-")
+	if result == "" {
+		return "generated-project"
+	}
+	return result
 }
 
 func sendEvent(client *WebSocketClient, event ProgressEvent) {
