@@ -48,7 +48,7 @@ const AICodeGenerator = () => {
     try {
       setIsLoadingHistory(true);
       const response = await fetch(
-        `https://vigilant-nurturing-production.up.railway.app/api/history?user_id=${id}`,
+        `https://codegen-ai-production.up.railway.app/api/history?user_id=${id}`,
       );
 
       if (!response.ok) {
@@ -156,7 +156,7 @@ const AICodeGenerator = () => {
   const deleteChat = async (chatId) => {
     try {
       const response = await fetch(
-        `https://vigilant-nurturing-production.up.railway.app/api/codegen/delete?id=${chatId}&user_id=${id}`,
+        `https://codegen-ai-production.up.railway.app/api/codegen/delete?id=${chatId}&user_id=${id}`,
         {
           method: "DELETE",
           headers: {
@@ -231,7 +231,9 @@ const AICodeGenerator = () => {
     }
 
     // Connect to WebSocket
-    websocketRef.current = new WebSocket(`wss://vigilant-nurturing-production.up.railway.app/api/generate`);
+    websocketRef.current = new WebSocket(
+      `wss://codegen-ai-production.up.railway.app/api/generate`,
+    );
 
     websocketRef.current.onopen = () => {
       websocketRef.current.send(
@@ -1106,7 +1108,15 @@ const AICodeGenerator = () => {
                   <div ref={consoleRef} className="console"></div>
 
                   {downloadUrl && (
-                    <div className="download-section" style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
+                    <div
+                      className="download-section"
+                      style={{
+                        display: "flex",
+                        gap: "1rem",
+                        justifyContent: "center",
+                        flexWrap: "wrap",
+                      }}
+                    >
                       <a href={downloadUrl} className="download-btn">
                         Download Project
                       </a>

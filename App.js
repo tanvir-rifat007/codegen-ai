@@ -110,7 +110,7 @@ function AICodeGenerator() {
 
     // Connect to WebSocket
     websocketRef.current = new WebSocket(
-      `wss://vigilant-nurturing-production.up.railway.app/api/generate`,
+      `wss://codegen-ai-production.up.railway.app/api/generate`,
     );
 
     websocketRef.current.onopen = () => {
