@@ -109,7 +109,9 @@ function AICodeGenerator() {
     }
 
     // Connect to WebSocket
-    websocketRef.current = new WebSocket(`ws://localhost:3000/api/generate`);
+    websocketRef.current = new WebSocket(
+      `wss://vigilant-nurturing-production.up.railway.app/api/generate`,
+    );
 
     websocketRef.current.onopen = () => {
       websocketRef.current.send(

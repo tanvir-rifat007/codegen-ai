@@ -149,7 +149,7 @@ func main() {
 		}
 	})))
 
-	fmt.Println("SSR Server starting on http://localhost:3000")
+	fmt.Println("SSR Server starting on port 3000...")
 	fmt.Println("Static files served from /assets/")
 	fmt.Println("React SSR on every request!")
 

@@ -48,7 +48,7 @@ const AICodeGenerator = () => {
     try {
       setIsLoadingHistory(true);
       const response = await fetch(
-        `http://localhost:3000/api/history?user_id=${id}`,
+        `https://vigilant-nurturing-production.up.railway.app/api/history?user_id=${id}`,
       );
 
       if (!response.ok) {
@@ -156,7 +156,7 @@ const AICodeGenerator = () => {
   const deleteChat = async (chatId) => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/codegen/delete?id=${chatId}&user_id=${id}`,
+        `https://vigilant-nurturing-production.up.railway.app/api/codegen/delete?id=${chatId}&user_id=${id}`,
         {
           method: "DELETE",
           headers: {
@@ -231,7 +231,7 @@ const AICodeGenerator = () => {
     }
 
     // Connect to WebSocket
-    websocketRef.current = new WebSocket(`ws://localhost:3000/api/generate`);
+    websocketRef.current = new WebSocket(`wss://vigilant-nurturing-production.up.railway.app/api/generate`);
 
     websocketRef.current.onopen = () => {
       websocketRef.current.send(

@@ -26,8 +26,7 @@ func main() {
 	// Setup HTTP routes
 	http.HandleFunc("/", handleSSR)
 
-	fmt.Println("SSR Server starting on http://localhost:3000")
-	fmt.Println("Static files served from /assets/")
+	fmt.Println("SSR Server starting on port 3000...")
 	fmt.Println("React SSR on every request!")
 
 	log.Fatal(http.ListenAndServe(":3000", nil))
